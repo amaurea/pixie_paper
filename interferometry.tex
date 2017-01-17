@@ -1,0 +1,98 @@
+\documentclass{article}
+\usepackage{amsmath}
+\newcommand{\rtwo}{\frac{1}{\sqrt{2}}}
+
+\begin{document}
+This derivation ignores sign changes in the y polarization when reflecting
+off mirrors. This appears to cancel in the end. But it's probably best to just
+point people at the derivation in the pixie paper appendix.
+
+Radiation with electrical field $\vec E^A = E^A_x \vec e_x + E^A_y \vec e_y$
+enters barrel A, and similarly for barrel B. After passing through polarizer
+A, which lets through vertical polarization and reflects horizontal, the
+electrical fields in the left and right shafts are
+\begin{align}
+	\vec E^{A1} &= E^A_x \vec e_x + E^B_y \vec e_y
+& \vec E^{B1} &= E^B_x \vec e_x + E^A_y \vec e_y
+\end{align}
+After passing through the diagonal polarizer B, we have
+\begin{align}
+	\vec E^{A2} &= \rtwo [E^A_x+E^B_y]\vec e_a + \rtwo[-E^B_x+E^A_y]\vec e_b \notag \\
+	\vec E^{B2} &= \rtwo [E^B_x+E^A_y]\vec e_a + \rtwo[-E^A_x+E^B_y]\vec e_b
+\end{align}
+where $\vec e_a \equiv \rtwo [\vec e_x + \vec e_y]$ and $\vec e_b
+\equiv \rtwo [-\vec e_x + \vec e_y]$. The dihedral mirror then
+imparts a relative phase delay $\Delta$ for the left and right paths.
+This advances one side (the A side for positive $\Delta$) and
+retards the other. We indicate this with + and - tags.
+\begin{align}
+	\vec E^{A3} &= \rtwo [E^{A+}_x+E^{B+}_y]\vec e_a + \rtwo[-E^{B+}_x+E^{A+}_y]\vec e_b \notag \\
+	\vec E^{B3} &= \rtwo [E^{B-}_x+E^{A-}_y]\vec e_a + \rtwo[-E^{A-}_x+E^{B-}_y]\vec e_b
+\end{align}
+Polarizer C is also diagonal.
+\begin{align}
+	\vec E^{A4} &= \rtwo [E^{A+}_x+E^{B+}_y]\vec e_a + \rtwo[-E^{A-}_x+E^{B-}_y]\vec e_b \notag \\
+	\vec E^{B4} &= \rtwo [E^{B-}_x+E^{A-}_y]\vec e_a + \rtwo[-E^{B+}_x+E^{A+}_y]\vec e_b
+\end{align}
+And the final polarizer D is vertical. The output of this enters
+the left (L) and right (R) feedhorns.
+\begin{align}
+	\vec E^L = \vec E^{A5} &= \frac12 [E^{A+}_x+E^{B+}_y+E^{A-}_x-E^{B-}_y]\vec e_x \notag \\
+		&+ \frac12 [E^{B-}_x+E^{A-}_y-E^{B+}_x+E^{A+}_y]\vec e_y \notag \\
+	\vec E^R = \vec E^{B5} &= \frac12 [E^{B-}_x+E^{A-}_y+E^{B+}_x-E^{A+}_y]\vec e_x \notag \\
+		&+ \frac12 [E^{A+}_x+E^{B+}_y-E^{A-}_x+E^{B-}_y]\vec e_y
+\end{align}
+After passing through all this, the light enters the feedhorns and
+hits the detectors. Using the expression above, we can relate the
+Stokes parameters incident on the detectors to the Stokes parameters
+of the radiation that enters the barrels. The parameters are defined
+as $I \equiv \langle E_x^2\rangle + \langle E_y^2\rangle$,
+$Q \equiv \langle E_x^2\rangle - \langle E_y^2\rangle$,
+$U \equiv 2\langle E_xE_y\rangle$, so we need to compute $\langle E_x^2\rangle$,
+$\langle E_y^2\rangle$ and $\langle E_xE_y\rangle$. For the A path, the first of these is
+
+\begin{align}
+	P^L_x &= \langle {E^{A5}_x}^2\rangle \notag \\
+		&= \frac14\big[
+			\langle {E^{A+}_x}^2\rangle
+			+ \langle {E^{B+}_y}^2\rangle
+			+ \langle {E^{A-}_x}^2\rangle
+			+ \langle {E^{B-}_y}^2\rangle
+			+ 2\langle E^{A+}_xE^{B+}_y\rangle
+			+ 2\langle E^{A+}_xE^{A-}_x\rangle \notag \\
+			&- 2\langle E^{A+}_xE^{B-}_y\rangle
+			+ 2\langle E^{B+}_yE^{A-}_x\rangle
+			- 2\langle E^{B+}_yE^{B-}_y\rangle
+			- 2\langle E^{A-}_xE^{B-}_y\rangle
+			\big]
+\end{align}
+If we assume that the sky does not change over time-scales
+comparable to the period of the light, then $\langle {E^{A+}}^2\rangle
+= \langle {E^{A-}}^2\rangle = \langle {E^A}^2\rangle = \frac12(I^A+Q^A)$,
+and similarly for B. By similar logic, we see that $\langle E^{A+}_xE^{B-}_y\rangle = \langle E^{A-}_xE^{B+}_y\rangle$. Using this, we get
+\begin{align}
+	P^L_x &= \frac14 [I^A+I^B+Q^A-Q^B + I^{A\Delta}+Q^{A\Delta}-I^{B\Delta}+Q^{B\Delta}]
+\end{align}
+where $I^\Delta \equiv \langle E^+_xE^-_x\rangle$, and similarly for the
+other stokes parameters. We can write the result more symmetrically by
+defining $[\textrm{expr}]_\Delta$ to mean the expression evaluated with
+a delay of $\Delta$. With this, we get
+\begin{align}
+	P^L_x &= \frac14 [I^A+I^B+Q^A-Q^B]_0 + \frac14[I^A-I^B+Q^A+Q^B]_\Delta \\
+	P^L_y &= \frac14 [I^A+I^B-Q^A+Q^B]_0 + \frac14[I^A-I^B-Q^A-Q^B]_\Delta \\
+	P^L_{xy} &= \frac14 [U^A-U^B]_0 + \frac14[U^A+U^B]_\Delta
+\end{align}
+which results in horn stoks parameters of
+\begin{align}
+	I^L &= \frac12 [I^A+I^B]_0 + \frac12[I^A-I^B]_\Delta \\
+	Q^L &= \frac12 [Q^A-Q^B]_0 + \frac12[Q^A+Q^B]_\Delta \\
+	U^L &= \frac12 [U^A-U^B]_0 + \frac12[U^A+U^B]_\Delta
+\end{align}
+The other horn follows by symmetry.
+\begin{align}
+	I^R &= \frac12 [I^B+I^A]_0 + \frac12[I^B-I^A]_\Delta \\
+	Q^R &= \frac12 [Q^B-Q^A]_0 + \frac12[Q^B+Q^A]_\Delta \\
+	U^R &= \frac12 [U^B-U^A]_0 + \frac12[U^B+U^A]_\Delta
+\end{align}
+
+\end{document}

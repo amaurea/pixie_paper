@@ -1,0 +1,304 @@
+\documentclass{article}
+\usepackage{amsmath,gensymb}
+\usepackage[margin=22mm]{geometry}
+
+\begin{document}
+
+\section{What PIXIE observes}
+Nominally, what PIXIE's 4 detectors observe at any given time is
+\begin{align}
+\vec s_\textrm{det}(t) &= \overbrace{\frac12\begin{bmatrix}
+	\vec e_I+\vec e_Q & 0 \\
+	\vec e_I-\vec e_Q & 0 \\
+	0 & \vec e_I+\vec e_Q  \\
+	0 & \vec e_I-\vec e_Q \end{bmatrix}}^\textrm{Detector response}
+	\cdot
+	\overbrace{\frac12\begin{bmatrix}
+	1 &  D_I-D_P & 1 & -D_I+D_P \\
+	D_I-D_P	& 1 & -D_I+D_P & 1
+	\end{bmatrix}}^\textrm{Horn response}
+	\cdot
+	\overbrace{\begin{bmatrix}
+	R_{1t}\cdot\vec s_{\textrm{sky}1}(\hat p_{1t},0) \\
+	R_{2t}\cdot\vec s_{\textrm{sky}2}(\hat p_{2t},0) \\
+	R_{1t}\cdot\vec s_{\textrm{sky}1}(\hat p_{1t},\tau) \\
+	R_{2t}\cdot\vec s_{\textrm{sky}2}(\hat p_{2t},\tau)
+	\end{bmatrix}}^\textrm{Barrel signal}
+	\label{eq:response}
+\end{align}
+where $\hat p_{bt}$ is the sky pointing of barrel $b$ at time $t$,
+$\vec s_{\textrm{sky},b}(\hat p,\tau)$ is the beam-smoothed,
+frequency-weighted sky autocorrelation
+function for the given pointing and time delay as seen by barrel $b$
+(different barrels can see different skies because one barrel may
+be covered by a blackbody calibrator),
+$R_{bt}$ is
+a matrix that rotates the polarization basis from sky to instrument
+coordinates, $D_I$ and $D_P$ are Stokes mixing matrixes given by
+$D_I = \textrm{diag}(1,0,0)$ and $D_P = \textrm{diag}(0,1,1)$,
+and $\vec e_I = (1,0,0)$ and $\vec e_P = (0,1,1)$ are Stokes basis
+vectors. PIXIE's interferometry shows up in two ways here:
+The sky autocorrelation function, rather than just its intensity,
+is what is measured; and the barrel signal differencing in the horn
+response.
+
+Of course, a real instrument does not read out data with infinite
+time resolution, but as a set of discrete samples, each of which is
+noisy. The PIXIE hardware will also apply a bandpass filter to avoid
+aliasing and suppress low-frequency noise. Taking this into account,
+we model the time-ordered data as
+\begin{align}
+	\vec d_i = B_{ij} \int_{t_j-\Delta t/2}^{t_j+\Delta t/2} \vec s_\textrm{det}(t) \textrm{d}t + \vec n_i
+\end{align}
+where $i$ is the sample index, $B$ is the bandpass filter, $\Delta t$ is the sample
+interval and $\vec n_i$ is the noise in sample $i$.
+
+To simulate this, we need to be able to
+\begin{enumerate}
+	\item Generate a simulated sky
+	\item Compute the telescope pointing $\hat p$ and associated polarization rotation
+	matrix $R$ and relative path delay $\tau$ at each time $t$ for each barrel.
+	\item Evaluate the autocorrelation function for each component of the sky as
+	seen by each barrel for any $\hat p$ and $\tau$.
+	\item Find the detecor response using equation~\ref{eq:response}.
+	\item Integrate across subsample variation, and apply the time-frequency
+	response and detector noise.
+\end{enumerate}
+
+\section{Simulating the sky components}
+
+\section{Pointing}
+PIXIE will orbit at the Sun-Earth L2 point, placing it in the ecliptic, with
+a heliocentric ecliptic latitude $b=0$ and longitude $l=l_0 +
+360\degree\frac{t-t_0}{T_\textrm{orbit}}$ with $T_\textrm{orbit} = 1\textrm{year}$.
+As it orbits scans great circles
+perpendicular to the direction towards the sun, with a linearly increasing scan angle
+$\alpha_\textrm{scan} = \alpha_{\textrm{scan},0} + 360\degree \frac{t-t_0}{T_\textrm{scan}}$.
+To form an actual great circle rather than an epicycle, the scan axis does not
+move continuously with $b$, but updates in steps after each circle has been completed:
+$\alpha_\textrm{orbit} = l_0 + 360\degree\left\lfloor\frac{t-t_0}{T_\textrm{scan}}\right\rfloor\frac{T_\textrm{scan}}{T_\textrm{orbit}}$.
+During each scan the the telescope spins around around its boresight to modulate
+the observed polarization and reject systematics: $\alpha_\textrm{spin} =
+\alpha_{\textrm{spin},0} + 360\degree\frac{t-t_0}{T_\textrm{spin}}$. And finally,
+while it is spinning the dihedral mirror sweeps backwards and forwards at constant
+speed, varying the path length time difference in the fourier transform spectrometer
+by $\tau = A_\textrm{delay}c^{-1} \textrm{triangle}\Big(\frac{t-t_0}{T_\textrm{stroke}}$,
+with $A_\textrm{delay} = 10.40303 \textrm{mm}$ for the purposes of this paper, but
+varying somewhat by observing mode in the real experiment, and with
+$\textrm{triangle}(x)$ being the triangle wave with period 1, mean 0 and a zero
+crossing at $x=0$.
+
+To allow PIXIE mapmaking to use fast fourier transform methods, the stroke, spin
+and scan periods will be synchronized such that there is an integer number of
+strokes in a spin, and an integer number of spins in a scan. We will use the
+values $T_\textrm{spin} = 60 \textrm{s}$, $T_\textrm{stroke} = T_\textrm{spin}/8 =
+7.5 \textrm{s}$, $T_\textrm{scan} = 384 T_\textrm{spin} = 384 \textrm{min}$ here.
+However, the simulation purposefully does not depend on integer ratios to be able
+to investigate the consequences of small deviations from integer ratios.
+
+A barrel-to-sky rotation matrix that implements this pointing model is
+\begin{align}
+	R_\textrm{tot}(b,t)  &= R_\textrm{orient}(t)R_\textrm{barrel}(b) \\
+	R_\textrm{orient}(t) &= R_z\big(\alpha_\textrm{orbit}(t)\big)
+		R_y\Big(\frac\pi2-\alpha_\textrm{eclip}\Big)
+		R_z\big(\alpha_\textrm{scan}(t)\big)R_y\Big(\frac\pi2-\alpha_\textrm{open}\Big)
+		R_z\big(\alpha_\textrm{spin}(t)\big) \\
+	R_\textrm{barrel}(b) &= R_z\big(\Delta\phi(b)\big)R_y\big(\Delta\theta(b)\big)R_z\big(\Delta\psi(b)\big)
+\end{align}
+
+Here $R_\textrm{barrel}(b)$ represents the orientation of barrel $b$ relative
+to the spacecraft. Fiducially $R_\textrm{barrel} = 1$ for both barrels, but
+we include this rotation to be able to support misaligned barrels or more
+complicated beams. $R_\textrm{orient}(t)$ represents PIXIE's orientation
+in space at time $t$, and in addition to the angles described above includes
+$\alpha_\textrm{eclip}$ and $\alpha_\textrm{open}$, which represent the
+offset of PIXIE's orbital plane from the ecliptic and the opening angle
+offset (to support non-great-circle scans), both of which are fiducially 0.
+$R_y(\theta)$ and $R_z(\theta)$ are rotations around the $y$ and $z$ axes
+by an angle $\theta$.
+
+$R_\textrm{tot}$ encodes both the sky coordinates and polarization rotation.
+\begin{align}
+	x_i &= R_\textrm{tot,xi} & y_i &= R_\textrm{tot,yi} & p_i &\equiv z_i = R_\textrm{tot,zi} \\
+	l        &= \tan^{-1}(p_y/p_x)  &
+	b        &= \tan^{-1}\Big(\frac{p_z}{\sqrt{p_x^2+p_y^2}}\Big) &
+	\gamma   &= \tan^{-1}\Big(\frac{x_z}{p_y x_x - p_x x_y}\Big)
+\end{align}
+with all the above being a function of the barrel index and time.
+$\hat p = (p_x,p_y,p_z)$ is the pointing vector and $\gamma$ is the
+polarization basis rotation, and corresponds to a Stokes rotation
+matrix
+\begin{align}
+	R &= \begin{bmatrix}
+		1 & 0 & 0 \\
+		0 & \cos(2\gamma) & -\sin(2\gamma) \\
+		0 & \sin(2\gamma) & \cos(2\gamma)
+	\end{bmatrix}
+\end{align}
+
+%	p_{bt,i} &= R_{\textrm{tot,3i}}(b,t) \\
+
+\section{Evaluating the sky autocorrelation function at the observed location}
+As PIXIE observes the sky it mesures the autocorrelation function of the
+radiation coming from the points it scans past. To simulate the PIXIE signal
+we therefore need to be able to evaluate the I, Q and U autocorrelation functions at
+an arbitrary point $\hat p$ on the sky for an arbitrary phase delay $\tau$
+for each component that makes up the sky (CMB, dust, etc.).
+
+\subsection{Approaches that don't work}
+A straightforward and general way of doing this would be to precompute the
+full-sky autocorrelation function: Evaluate the full-sky spectrum at equi-spaced
+frequencies. Apply the beam to each frequency map and scale each frequency by
+the instrument's frequency response. Fourier transform the result
+to get a (pixelized version of) the full-sky autocorrelation function. To read off
+the value at a general $(\hat p, \tau)$ one would then do an interpolated lookup
+in this $N_\textrm{pix}$ by $N_\textrm{delay}$ data cube. This approach has the
+advantage of being able to handle frequency-dependent beams, which is otherwise
+very hard to implement. However, in order to be able to investigate the effect
+of sub-resolution features (both spectrally and spatially) this data cube would
+need to be pixelized at many times higher resolution than the PIXIE output map.
+This made the memory requirements of this approach prohibitively high. For example,
+for $0.1\degree$ spatial resolution and 5000 frequency bins, storing the full-sky
+autocorrelation function would need about 700 GB of RAM.
+
+If one assumes a frequency-independent beam, which should be a good approximation
+for PIXIE, then it's sufficient to apply the beam to the parameters used to generate
+the spectrum (e.g. the CMB temperature map) rather than the spectrum itself. This
+decouples the spatial and spectral dimensions, making it possible to evaluate the
+spectrum in one pixel independently of the rest of the sky. With this, we could
+imagine the following approach: For each sample, interpolate the spectrum parameters
+at $\hat p$, then evaluate the whole spectrum, apply the frequency response,
+fourier transform it,
+and interpolate the value for $\tau$. In our example above, this would reduce
+the RAM requirements by a factor of 5000. But it would introduce another prohibitive
+cost: The need to evaluate the spectrum at thousands of frequencies and fourier transform
+these for every sample in the TOD.\footnote{
+A hybrid approach between these two would be to precompute the autocorrelation function
+for a chunk of the sky around the current sample, and reuse that for subsequent samples
+until a sample falls outside the chunk, and then precompute a new chunk. We investigated
+this in the hopes of being able to support frequency-dependent beams, but found that
+edge effects and the flat-sky-approximation needed to perform beam-smoothing on a small
+patch did not result in the required accuracy. This may still be a good approach for
+frequency-independent beam simulations, though.}
+
+\subsection{Autocorrelation by Taylor expansion}
+In the end, we went for a Taylor expansion approach: The autocorrelation function
+is evaluated as a perturbation around a different but similar
+precomputed autocorrelation function. This is done differently for each sky component.
+
+\subsubsection{CMB}
+Taking into account the instrument's frequency response $\rho(\nu)$, PIXIE
+observes the CMB with the spectrum
+\begin{align}
+I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= \rho(\nu)B_\nu(\nu, T(\hat p)) = \frac{2h\nu^3\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{kT(\hat p)}} - 1}
+\end{align}
+Here the $I$ subscript indicates the Stokes parameter, and $T(\hat p)$ is the
+\emph{beam-smoothed}\footnote{Implementation of asymetric beams is described in
+section X.} CMB temperature at pointing $\hat p$.
+Including the doppler dipole, T only has a contrast of order $10^{-3}$, so a Taylor
+expansion in T will converge rapidly. Our goal is $<10^{-9}$ relative error, so an
+expansion to 3rd order, which should give order $10^{-12}$ error, should be sufficient.
+The expansion is
+\begin{align}
+	I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= f_0(\nu) + f_1(\nu) \Delta T + \frac12 f_2(\nu) \Delta T^2 + \frac16 f_3(\nu) \Delta T^3
+\end{align}
+where
+\begin{align*}
+	f_0 &= p(g_0-1)^{-1}    & g_0 &= e^{a/T_0} \\
+	f_1 &= pf_0^2 g_1       & g_1 &= -g_0 a/T_0^2 \\
+	f_2 &= p(-2 f_0 f_1 g_1 - f_0^2 g_2) &
+	g_2 &= a(2 g_0-T_0 g_1)/T_0^3 \\
+	f_3 &= p(-2 f_1^2 g_1 - 2f_0 f_2 g_1 - 4 f_0 f_1 g_2 - f_0^2 g_3) &
+	g_3 &= -(3/T_0 + a/T_0^2)g_2 + a g_1/T_0^3
+\end{align*}
+and where $p = \frac{2h\nu^3\rho(\nu)}{c^2}$, $a = h\nu/k$ and $\Delta T(\hat p) = T(\hat p)-T_0$ with $T_0 = 2.725$K. 
+
+The autocorrelation function is simply the fourier transform of the spectral power
+density,
+\begin{align}
+I_\tau(\tau) &= \int_{-\infty}^\infty e^{2\pi i \nu \tau} I_\nu(\nu) d\nu = \tilde I_\nu(\tau)
+\end{align}
+Applying this to the Taylor expansion, we get
+\begin{align}
+I^\textrm{CMB}_{\tau,I}(\hat p,\tau) &= \tilde f_0(\tau) + \tilde f_1(\tau) \Delta T + \frac12 \tilde f_2(\tau) \Delta T^2 + \frac16 \tilde f_3(\tau) \Delta T^3
+\end{align}
+Hence, we can compute the autocorrelation for any $\hat p,\tau$ if we simply precompute
+the four position-independent functions $\{f_i\}$.\footnote{
+If we had not needed to support the frequency response of the instrument,
+we could have avoided the Taylor expansion by absorbing variation in $T$
+into rescaling of $v$. Sadly, PIXIE has significant damping at high frequency,
+so this approach does not work.} The CMB has frequency-independent polarization,
+so the $Q,U$ autocorrelation functions can be derived from $I$ by scaling them by
+the local $Q,U$ polarization fractions. I.e. $I^\textrm{CMB}_{\tau,Q|U}(\hat p,\tau) = I^\textrm{CMB}_{\tau,I}(\hat p,\tau) \frac{I^\textrm{CMB}_{\textrm{ref},Q|U}(\hat p)}{I^\textrm{CMB}_{\textrm{ref},I}(\hat p)}$.
+
+\subsubsection{Dust}
+We model the dust as a modified blackbody with constant
+$T=19.6$K and $\beta=1.59$, but varying opacity. The observed spectrum is thus
+\begin{align}
+I^\textrm{dust}_{\nu,i}(\hat p,\nu) &= A_i(\hat p) \frac{h\nu^{3+\beta}\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{kT}}-1} \equiv A_i(\hat p) f_{0\beta}(\nu)
+\end{align}
+for $i \in \{I,Q,U\}$. Here the prefactor $A_i(\hat p)$ encodes the position-dependent
+dust opacity and polarization, and should be smoothed with the instrument beam.
+Since $T$ and $\beta$ are constant, the frequency-dependent part of this spectrum is
+already position-independent, so we don't actually need to Taylor-expand in this case.
+We just need to precompute a single autocorrelation shape which is rescaled for each
+pointing.
+\begin{align}
+I^\textrm{dust}_{\tau,i}(\hat p,\tau) &= A_i(\hat p) \tilde f_{0\beta}(\tau)
+\end{align}
+This will need to be modified for more complicated dust models. If $T$ or $\beta$
+only change slightly, then the Taylor expansion approach can be used. For more
+substantial variation, a better approach may be to model it as several dust components,
+each with fixed parameters.
+
+\subsubsection{Other components}
+The results reported here are based on simulations that only include CMB and dust,
+but other components such as synchrotron, free-free, CO, AME, etc. can be implemented
+in a similar vein as above, as long as they can be approximated as a sum of
+constant-spectral-shape components or can be Taylor-expanded to sufficient accuracy.
+
+\section{TOD simulation}
+\emph{This was written independently of the above, and needs to be unified with it.
+This section is still very incomplete}
+
+PIXIE observs the sky with two collimated
+barrels. There are two modes of observation: double barrel observation,
+where both barrels see the same sky; and single barrel observation, where
+one barrel is covered by a blackbody calibrator. In both cases, the
+radiation entering the barrels passes through a fourier transform
+spectometer before entering the detector feedhorns. Aside from the resolution
+effects of the telescope beam, the response of this assembly is
+\begin{align}
+	I^A_\textrm{horn} &= \frac12 [I^A+I^B]_0 + \frac12[I^A-I^B]_\tau \\
+	Q^A_\textrm{horn} &= \frac12 [Q^A-Q^B]_0 + \frac12[Q^A+Q^B]_\tau \\
+	U^A_\textrm{horn} &= \frac12 [U^A-U^B]_0 + \frac12[U^A+U^B]_\tau,
+\end{align}
+The other horn follows by symmetry.
+Here $[\ldots]_\tau$ means that
+the bracketed quantities were evaluated with a time delay $\tau$. For
+example $[I]_\tau \equiv \langle E_x(t)E_x(t+\tau)\rangle + \langle E_y(t)E_y(t+\tau)\rangle$.
+These $\tau$ terms represent the autocorrelation function of the incoming
+light, which is related to the spectrum of the light through a fourier transform.
+The zero-delay (DC) terms are for the most part irrelvant. Because they are not
+modulated by the mirror motion they change so slowly that they are indistinguishable
+from long-term correlated noise in the detectors. Nevertheless, they are included
+in the simulation.
+
+PIXIE has two detectors in each horn. They are fiducially sensitive to orthogonal
+polarizations of light, with one measuring power of $E_x$ (corresponding to a Stokes
+response of $\frac12(I+Q)$) and the other $E_y$ (corresponding to $\frac12(I-Q)$).
+This orthogonality is useful for rejecting systematic errors, but we allow an arbitrary
+Stokes response per detector in the simulator to be able to test the effect of any
+non-orthoginality.
+
+%resp(det,dc?,tqu)sky(comp,pos,delay,dc?,tqu)
+%
+%for each detector
+% for each barrel
+%  for each beam component of that barrel
+%   get the pointing of that beam component on the sky
+%   evaluate all components (cmb,dust,...) of the beam-smoothed sky autocorrelation function that barrel sees at pointing for zero delay and for the current delay
+%   evaluate detector response based on pointing
+%   combine response and autocorrelation value to get detector signal
+
+\end{document}
