@@ -13,6 +13,8 @@
 \renewcommand{\Im}{\operatorname{Im}}
 
 \begin{document}
+
+\section{The PIXIE fourier transform spectrometer}
 PIXIE has two barrels, A and B. We can expand the electric field $\vec E^A(t)$,
 $\vec E^B(t)$ that enters these barrels in terms of Jones vectors as
 \begin{align}
@@ -37,7 +39,7 @@ the Jones vectors in left (A) and right (B) shafts are
 \end{align}
 After passing through the diagonal polarizer B, we have
 \begin{align}
-	\vec \J^{A2} &= \rtwo [\J^A_x+\J^B_y]\vec e_a + \rtwo[-\J^B_x+\J^A_y]\vec e_b \notag \\
+	\vec \J^{A2} &= \rtwo [\J^A_x+\J^B_y]\vec e_a + \rtwo[-\J^B_x+\J^A_y]\vec e_b &
 	\vec \J^{B2} &= \rtwo [\J^B_x+\J^A_y]\vec e_a + \rtwo[-\J^A_x+\J^B_y]\vec e_b
 \end{align}
 where $\vec e_a \equiv \rtwo [\vec e_x + \vec e_y]$ and $\vec e_b
@@ -47,12 +49,12 @@ A by $\frac12\Delta t$ and retarding B by $\frac12\Delta t$, which
 is achieved by multiplying A by $\delta^+ = e^{-\frac12\omega\Delta t}$
 and B by $\delta^- = e^{i\omega\Delta t}$:
 \begin{align}
-	\vec \J^{A3} &= \rtd [\J^A_x+\J^B_y]\vec e_a + \rtd[-\J^B_x+\J^A_y]\vec e_b \notag \\
+	\vec \J^{A3} &= \rtd [\J^A_x+\J^B_y]\vec e_a + \rtd[-\J^B_x+\J^A_y]\vec e_b &
 	\vec \J^{B3} &= \rtc [\J^B_x+\J^A_y]\vec e_a + \rtc[-\J^A_x+\J^B_y]\vec e_b
 \end{align}
 Polarizer C is also diagonal.
 \begin{align}
-	\vec \J^{A4} &= \rtd [\J^A_x+\J^B_y]\vec e_a + \rtc [-\J^A_x+\J^B_y]\vec e_b \notag \\
+	\vec \J^{A4} &= \rtd [\J^A_x+\J^B_y]\vec e_a + \rtc [-\J^A_x+\J^B_y]\vec e_b &
 	\vec \J^{B4} &= \rtc [\J^B_x+\J^A_y]\vec e_a + \rtd [-\J^B_x+\J^A_y]\vec e_b
 \end{align}
 And the final polarizer D is vertical. The output of this enters
@@ -60,47 +62,52 @@ the left (L) and right (R) feedhorns.
 \begin{align}
 	\vec \J^L = \vec \J^{A5} &= \frac12 \Big[\delta^+(\J^A_x+\J^B_y)+\delta^-(\J^A_x-\J^B_y)\Big]\vec e_x
 		+ \frac12 \Big[\delta^-(\J^B_x+\J^A_y)+\delta^+(-\J^B_x+\J^A_y)\Big]\vec e_y \notag \\
-		&= \big[\J^A_x\cos(\omega\Delta t/2) + i\J^B_y\sin(\omega\Delta t/2)\big]\vec e_x
-		+  \big[\J^A_y\cos(\omega\Delta t/2) - i\J^B_x\sin(\omega\Delta t/2)\big]\vec e_y \\
+		&= \big[\J^A_x\cos(\omega\Delta t/2) - i\J^B_y\sin(\omega\Delta t/2)\big]\vec e_x
+		+  \big[\J^A_y\cos(\omega\Delta t/2) + i\J^B_x\sin(\omega\Delta t/2)\big]\vec e_y \\
 	\vec \J^R = \vec \J^{B5} &= \frac12 \Big[\delta^-(\J^B_x+\J^A_y)+\delta^+(\J^B_x-\J^A_y)\Big]\vec e_x
 		+ \frac12 \Big[\delta^+(\J^A_x+\J^B_y)+\delta^-(-\J^A_x+\J^B_y)\Big]\vec e_y \notag \\
-		&= \big[\J^B_x\cos(\omega\Delta t/2) - i\J^A_y\sin(\omega\Delta t/2)\big]\vec e_x
-		+  \big[\J^B_y\cos(\omega\Delta t/2) + i\J^A_x\sin(\omega\Delta t/2)\big]\vec e_y
+		&= \big[\J^B_x\cos(\omega\Delta t/2) + i\J^A_y\sin(\omega\Delta t/2)\big]\vec e_x
+		+  \big[\J^B_y\cos(\omega\Delta t/2) - i\J^A_x\sin(\omega\Delta t/2)\big]\vec e_y
 \end{align}
+
+\subsection{Stokes parameters}
 After passing through all this, the light enters the feedhorns and
 hits the detectors. The power deposited here can be decomposed into
-Stokes parameters
+Stokes parameters\footnote{The quantities with tildes are for a single plane wave.
+The full Stokes parameters are obtained by integrating these. E.g. $I(\Delta t) =
+	\int_0^\infty \I(\omega) d\omega$.}
 \begin{align}
 	\I &= \langle |\J_x|^2\rangle + \langle|\J_y|^2\rangle &
 	\Q &= \langle |\J_x|^2\rangle - \langle|\J_y|^2\rangle &
 	\U &= 2\Re\langle \J_x\J_y^*\rangle &
 	\V &= -2\Im\langle \J_x\J_y^*\rangle
 \end{align}
-so we need to evaluate $P_{xx} = \langle |\J_x|^2\rangle$,
-$P_{yy} = \langle |\J_y|^2\rangle$ and $P_{xy} = \langle \J_x\J_y^*\rangle$.
-For the left horn we get
+so we need to evaluate $J_{xx} = \langle |\J_x|^2\rangle$,
+$J_{yy} = \langle |\J_y|^2\rangle$ and $J_{xy} = \langle \J_x\J_y^*\rangle$.
+For the left horn\footnote{The right horn follows by symmetry: $(L,A,B)\leftrightarrow
+(R,B,A)$.} we get
 \begin{align}
-	P^L_{xx} &= \langle \J^L_x\J^{L*}_x \rangle \notag \\
+	J^L_{xx} &= \langle \J^L_x\J^{L*}_x \rangle \notag \\
 		&= \frac12\big[1+\cos(\omega\Delta t)\big]\langle\J^A_x\J^{A*}_x\rangle
 		+ \frac12\big[1-\cos(\omega\Delta t)\big]\langle\J^B_y\J^{B*}_y\rangle
-		- \frac{i}2\langle\J^A_x\J^{B*}_y - \J^{A*}_x\J^B_y\rangle\sin(\omega\Delta t) \notag \\
-		&= \frac14\big[\I^A+\I^B+\Q^A-\Q^B + (\I^A-\I^B+\Q^A+\Q^B)\cos(\omega\Delta t) +
+		- \frac{i}2\langle\J^A_x\J^{B*}_y + \J^{A*}_x\J^B_y\rangle\sin(\omega\Delta t) \notag \\
+		&= \frac14\big[\I^A+\I^B+\Q^A-\Q^B + (\I^A-\I^B+\Q^A+\Q^B)\cos(\omega\Delta t) -
 		4\Im(\J^A_x\J^{B*}_y)\sin(\omega\Delta t) \big] \\
-	P^L_{yy} &= \frac14\big[\I^B+\I^A+\Q^B-\Q^A - (\I^B-\I^A+\Q^B+\Q^A)\cos(\omega\Delta t) +
+	J^L_{yy} &= \frac14\big[\I^B+\I^A+\Q^B-\Q^A - (\I^B-\I^A+\Q^B+\Q^A)\cos(\omega\Delta t) -
 		4\Im\langle\J^B_x\J^{A*}_y\rangle\sin(\omega\Delta t) \big ]\\
-	P^L_{xy} &= \frac14\big[\U^A-\U^B - i\V^A-i\V^B + (\U^A+\U^B -i\V^A+i\V^B)\cos(\omega\Delta t)
-		-2i\langle\J^A_x\J^{B*}_x+\J^B_y\J^{A*}_y\rangle\sin(\omega\Delta t)
+	J^L_{xy} &= \frac14\big[\U^A-\U^B - i\V^A-i\V^B + (\U^A+\U^B -i\V^A+i\V^B)\cos(\omega\Delta t)
+		+2i\langle\J^A_x\J^{B*}_x+\J^B_y\J^{A*}_y\rangle\sin(\omega\Delta t)
 \end{align}
 Hence
 \begin{align}
 	\I^L &= \frac12\big[\I^A+\I^B+(\I^A-\I^B)\cos(\omega\Delta t)
-		+2\Im\langle\J^A_x\J^{B*}_y+\J^B_x\J^{A*}_y\rangle\sin(\omega\Delta t) \big] \\
+		-2\Im\langle\J^A_x\J^{B*}_y+\J^B_x\J^{A*}_y\rangle\sin(\omega\Delta t) \big] \notag \\
 	\Q^L &= \frac12\big[\Q^A-\Q^B+(\Q^A+\Q^B)\cos(\omega\Delta t)
-		+2\Im\langle\J^A_x\J^{B*}_y-\J^B_x\J^{A*}_y\rangle\sin(\omega\Delta t) \big] \\
+		-2\Im\langle\J^A_x\J^{B*}_y-\J^B_x\J^{A*}_y\rangle\sin(\omega\Delta t) \big] \notag \\
 	\U^L &= \frac12\big[\U^A-\U^B+(\U^A+\U^B)\cos(\omega\Delta t)
-		+2\Im\langle\J^A_x\J^{B*}_x+\J^B_y\J^{A*}_y\rangle\sin(\omega\Delta t) \big] \\
+		-2\Im\langle\J^A_x\J^{B*}_x+\J^B_y\J^{A*}_y\rangle\sin(\omega\Delta t) \big] \notag \\
 	\V^L &= \frac12\big[\V^A+\V^B+(\V^A-\V^B)\cos(\omega\Delta t)
-		+2\Re\langle\J^A_x\J^{B*}_x+\J^B_y\J^{A*}_y\rangle\sin(\omega\Delta t) \big]
+		-2\Re\langle\J^A_x\J^{B*}_x+\J^B_y\J^{A*}_y\rangle\sin(\omega\Delta t) \big]
 \end{align}
 The value of the barrel cross-terms depends on whether PIXIE is in single
 or double barrel mode.
@@ -111,7 +118,7 @@ observes a static calibrator object. The light entering the two barrels is
 therefore uncorrelated, and all the cross-terms disappear.
 \begin{align}
 	\I^L &= \frac12\big[\I^A+\I^B+(\I^A-\I^B)\cos(\omega\Delta t)\big] &
-	\Q^L &= \frac12\big[\Q^A-\Q^B+(\Q^A+\Q^B)\cos(\omega\Delta t)\big] \\
+	\Q^L &= \frac12\big[\Q^A-\Q^B+(\Q^A+\Q^B)\cos(\omega\Delta t)\big] \notag \\
 	\V^L &= \frac12\big[\V^A+\V^B+(\V^A-\V^B)\cos(\omega\Delta t)\big] &
 	\U^L &= \frac12\big[\U^A-\U^B+(\U^A+\U^B)\cos(\omega\Delta t)\big]
 \end{align}
@@ -120,84 +127,39 @@ therefore uncorrelated, and all the cross-terms disappear.
 In double barrel mode the two barrels are both coaligned exposed to the sky,
 so they observe the same wavefront entering. As PIXIE's angular resolution is
 not infinite it is sensitive to wavefronts that are off-axis by a few degrees.
-Light arriving from direction $\hat n$ will hit Barrel B with a delay
-of $\tau = -\hat n \cdot \vec b / c$ where $\vec b$ is the distance vector from
+Light arriving from direction $\hat n$ will hit Barrel B a time
+$\tau = \hat n \cdot \vec b / c$ before barrel A, where $\vec b$ is the distance vector from
 barrel A to barrel B, and $c$ is the speed of light (see~\cite{pixie_array}).
-[Won't the different angles the mirrors are hit with in the two optical paths
-matter here too? I guess that can be absorbed into $\tau$]
 So in this case $\vec \J^B = \gamma \vec\J^A$ with $\gamma = e^{-i\omega\tau}$.
 \begin{align}
-	\I^L &= \I^A-\V^A\cos(\omega\tau)\sin(\omega\Delta t) &
-	\Q^L &= \Q^A\cos(\omega\Delta t)+\U^A\sin(\omega\tau)\sin(\omega\Delta t) \\
-	\V^L &= \V^A+I^A\cos(\omega\tau)\sin(\omega\Delta t) &
-	\U^L &= \U^A\cos(\omega\Delta t)+\Q^A\sin(\omega\tau)\sin(\omega\Delta t)
+	\I^L &= \I^A+\V^A\cos(\omega\tau)\sin(\omega\Delta t) &
+	\Q^L &= \Q^A\cos(\omega\Delta t)-\U^A\sin(\omega\tau)\sin(\omega\Delta t) \notag \\
+	\V^L &= \V^A-I^A\cos(\omega\tau)\sin(\omega\Delta t) &
+	\U^L &= \U^A\cos(\omega\Delta t)-\Q^A\sin(\omega\tau)\sin(\omega\Delta t)
 \end{align}
+If the barrels are not perfectly collimated, or if they have asymmetric sidelobes,
+then the situation will be more complicated, as only part of the radiation that
+enters the barrels will be correlated.
 
+The leakage terms are not yet implemented in the simulator described in this
+article. However, as they are all proportional to $\sin(\omega\Delta t)$ and
+are therefore an antisymmetric function of the mirror stroke, they can be
+easily disentangled from the main signal which is symmetric. Their absence
+from the simulation should therefore impact our results meaninfully.
 
+In the absence of the leakage terms, the signal in double barrel mode is
+identical to that of single barrel mode with $(I^A,Q^A,U^A,V^A)=(I^B,Q^B,U^B,V^B)$.
 
-
-
-
-
-Using the expression above, we can relate the
-Stokes parameters incident on the detectors to the Stokes parameters
-of the radiation that enters the barrels. The parameters are defined
-as $I \equiv \langle E_x^2\rangle + \langle E_y^2\rangle$,
-$Q \equiv \langle E_x^2\rangle - \langle E_y^2\rangle$,
-$U \equiv 2\langle E_xE_y\rangle$, so we need to compute $\langle E_x^2\rangle$,
-$\langle E_y^2\rangle$ and $\langle E_xE_y\rangle$. For the A path, the first of these is
-
+\subsection{Detectors}
+PIXIE has an x and y-oriented detector in each horn. The power deposited on each
+of these is
 \begin{align}
-	P^L_x &= \langle {E^{A5}_x}^2\rangle \notag \\
-		&= \frac14\big[
-			\langle {E^{A+}_x}^2\rangle
-			+ \langle {E^{B+}_y}^2\rangle
-			+ \langle {E^{A-}_x}^2\rangle
-			+ \langle {E^{B-}_y}^2\rangle
-			+ 2\langle E^{A+}_xE^{B+}_y\rangle
-			+ 2\langle E^{A+}_xE^{A-}_x\rangle \notag \\
-			&- 2\langle E^{A+}_xE^{B-}_y\rangle
-			+ 2\langle E^{B+}_yE^{A-}_x\rangle
-			- 2\langle E^{B+}_yE^{B-}_y\rangle
-			- 2\langle E^{A-}_xE^{B-}_y\rangle
-			\big]
+	P^L_x &= \frac14 \int_0^\infty \big(\I^L(\omega)+\Q^L(\omega)\big) d\omega &
+	P^L_y &= \frac14 \int_0^\infty \big(\I^L(\omega)-\Q^L(\omega)\big) d\omega
 \end{align}
-If we assume that the sky does not change over time-scales
-comparable to the period of the light, then $\langle {E^{A+}}^2\rangle
-= \langle {E^{A-}}^2\rangle = \langle {E^A}^2\rangle = \frac12(I^A+Q^A)$,
-and similarly for B. The cross-terms $\langle E^{A+}_xE^{B-}_y\rangle
--\langle E^{A-}_xE^{B+}_y\rangle$ can be ignored in both of Pixie's modes of
-observation. In single barrel mode the A and B signals are uncorrelated,
-making both individually zero. In double barrel mode the A and B signals are
-the same, so $\langle E^{A+}_xE^{B-}_y\rangle
--\langle E^{A-}_xE^{B+}_y\rangle = \langle E^{A+}_xE^{A-}_y\rangle
--\langle E^{A-}_xE^{A+}_y\rangle = \frac12$ TODO fix this with
-Jones angles form the beginning
-
-By similar logic, we see that $\langle E^{A+}_xE^{B-}_y\rangle = \langle E^{A-}_xE^{B+}_y\rangle$ (actually, I'm not sure this is true). Using this, we get
-\begin{align}
-	P^L_x &= \frac14 [I^A+I^B+Q^A-Q^B + I^{A\Delta}+Q^{A\Delta}-I^{B\Delta}+Q^{B\Delta}]
-\end{align}
-where $I^\Delta \equiv \langle E^+_xE^-_x\rangle +\langle E^+_yE^-_y\rangle$, and similarly for the
-other stokes parameters. We can write the result more symmetrically by
-defining $[\textrm{expr}]_\Delta$ to mean the expression evaluated with
-a delay of $\Delta$. With this, we get
-\begin{align}
-	P^L_x &= \frac14 [I^A+I^B+Q^A-Q^B]_0 + \frac14[I^A-I^B+Q^A+Q^B]_\Delta \\
-	P^L_y &= \frac14 [I^A+I^B-Q^A+Q^B]_0 + \frac14[I^A-I^B-Q^A-Q^B]_\Delta \\
-	P^L_{xy} &= \frac14 [U^A-U^B]_0 + \frac14[U^A+U^B]_\Delta
-\end{align}
-which results in horn stoks parameters of
-\begin{align}
-	I^L &= \frac12 [I^A+I^B]_0 + \frac12[I^A-I^B]_\Delta \\
-	Q^L &= \frac12 [Q^A-Q^B]_0 + \frac12[Q^A+Q^B]_\Delta \\
-	U^L &= \frac12 [U^A-U^B]_0 + \frac12[U^A+U^B]_\Delta
-\end{align}
-The other horn follows by symmetry.
-\begin{align}
-	I^R &= \frac12 [I^B+I^A]_0 + \frac12[I^B-I^A]_\Delta \\
-	Q^R &= \frac12 [Q^B-Q^A]_0 + \frac12[Q^B+Q^A]_\Delta \\
-	U^R &= \frac12 [U^B-U^A]_0 + \frac12[U^B+U^A]_\Delta
-\end{align}
+where all the quantities depend on $\Delta t$ and potentially $\tau$. Here
+one factor of 1/2 comes from the linear combination of $I$ and $Q$, while
+the other one takes into account that the power of a harmonic wave is half
+its squared amplitude.
 
 \end{document}
