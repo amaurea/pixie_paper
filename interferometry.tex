@@ -60,8 +60,12 @@ the left (L) and right (R) feedhorns.
 \begin{align}
 	\vec \J^L = \vec \J^{A5} &= \frac12 \Big[\delta^+(\J^A_x+\J^B_y)+\delta^-(\J^A_x-\J^B_y)\Big]\vec e_x
 		+ \frac12 \Big[\delta^-(\J^B_x+\J^A_y)+\delta^+(-\J^B_x+\J^A_y)\Big]\vec e_y \notag \\
+		&= \big[\J^A_x\cos(\omega\Delta t/2) + i\J^B_y\sin(\omega\Delta t/2)\big]\vec e_x
+		+  \big[\J^A_y\cos(\omega\Delta t/2) - i\J^B_x\sin(\omega\Delta t/2)\big]\vec e_y \\
 	\vec \J^R = \vec \J^{B5} &= \frac12 \Big[\delta^-(\J^B_x+\J^A_y)+\delta^+(\J^B_x-\J^A_y)\Big]\vec e_x
-		+ \frac12 \Big[\delta^+(\J^A_x+\J^B_y)+\delta^-(-\J^A_x+\J^B_y)\Big]\vec e_y
+		+ \frac12 \Big[\delta^+(\J^A_x+\J^B_y)+\delta^-(-\J^A_x+\J^B_y)\Big]\vec e_y \notag \\
+		&= \big[\J^B_x\cos(\omega\Delta t/2) - i\J^A_y\sin(\omega\Delta t/2)\big]\vec e_x
+		+  \big[\J^B_y\cos(\omega\Delta t/2) + i\J^A_x\sin(\omega\Delta t/2)\big]\vec e_y
 \end{align}
 After passing through all this, the light enters the feedhorns and
 hits the detectors. The power deposited here can be decomposed into
@@ -77,11 +81,9 @@ $P_{yy} = \langle |\J_y|^2\rangle$ and $P_{xy} = \langle \J_x\J_y^*\rangle$.
 For the left horn we get
 \begin{align}
 	P^L_{xx} &= \langle \J^L_x\J^{L*}_x \rangle \notag \\
-		&= \frac14\big[
-			\langle\J^A_x\J^{A*}_x\rangle (2+{\delta^+}^2+{\delta^-}^2) +
-			\langle\J^B_y\J^{B*}_y\rangle (2-{\delta^+}^2-{\delta^-}^2) \notag \\
-		&+\langle-\J^A_x\J^{B*}_y+\J^B_y\J^{A*}_x\rangle{\delta^+}^2 +
-			\langle-\J^B_y\J^{A*}_x+\J^A_x\J^{B*}_y\rangle{\delta^-}^2\big] \notag \\
+		&= \frac12\big[1+\cos(\omega\Delta t)\big]\langle\J^A_x\J^{A*}_x\rangle
+		+ \frac12\big[1-\cos(\omega\Delta t)\big]\langle\J^B_y\J^{B*}_y\rangle
+		- \frac{i}2\langle\J^A_x\J^{B*}_y - \J^{A*}_x\J^B_y\rangle\sin(\omega\Delta t) \notag \\
 		&= \frac14\big[\I^A+\I^B+\Q^A-\Q^B + (\I^A-\I^B+\Q^A+\Q^B)\cos(\omega\Delta t) +
 		4\Im(\J^A_x\J^{B*}_y)\sin(\omega\Delta t) \big] \\
 	P^L_{yy} &= \frac14\big[\I^B+\I^A+\Q^B-\Q^A - (\I^B-\I^A+\Q^B+\Q^A)\cos(\omega\Delta t) +
