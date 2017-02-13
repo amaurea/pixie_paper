@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{amsmath,gensymb}
+\usepackage{amsmath,gensymb,color}
 \usepackage[margin=22mm]{geometry}
 \newcommand{\rtwo}{\frac{1}{\sqrt{2}}}
 \newcommand{\rtd}{\frac{\delta^+}{\sqrt{2}}}
@@ -71,6 +71,7 @@ the left (L) and right (R) feedhorns.
 \end{align}
 
 \subsection{Stokes parameters}
+\label{s:stokes}
 After passing through all this, the light enters the feedhorns and
 hits the detectors. The power deposited here can be decomposed into
 Stokes parameters\footnote{The quantities with tildes are for a single plane wave.
@@ -82,20 +83,20 @@ The full Stokes parameters are obtained by integrating these. E.g. $I(\Delta t) 
 	\U &= 2\Re\langle \J_x\J_y^*\rangle &
 	\V &= -2\Im\langle \J_x\J_y^*\rangle
 \end{align}
-so we need to evaluate $J_{xx} = \langle |\J_x|^2\rangle$,
-$J_{yy} = \langle |\J_y|^2\rangle$ and $J_{xy} = \langle \J_x\J_y^*\rangle$.
+so we need to evaluate $P_{xx} = \langle |\J_x|^2\rangle$,
+$P_{yy} = \langle |\J_y|^2\rangle$ and $P_{xy} = \langle \J_x\J_y^*\rangle$.
 For the left horn\footnote{The right horn follows by symmetry: $(L,A,B)\leftrightarrow
 (R,B,A)$.} we get
 \begin{align}
-	J^L_{xx} &= \langle \J^L_x\J^{L*}_x \rangle \notag \\
+	P^L_{xx} &= \langle \J^L_x\J^{L*}_x \rangle \notag \\
 		&= \frac12\big[1+\cos(\omega\Delta t)\big]\langle\J^A_x\J^{A*}_x\rangle
 		+ \frac12\big[1-\cos(\omega\Delta t)\big]\langle\J^B_y\J^{B*}_y\rangle
 		- \frac{i}2\langle\J^A_x\J^{B*}_y + \J^{A*}_x\J^B_y\rangle\sin(\omega\Delta t) \notag \\
 		&= \frac14\big[\I^A+\I^B+\Q^A-\Q^B + (\I^A-\I^B+\Q^A+\Q^B)\cos(\omega\Delta t) -
 		4\Im(\J^A_x\J^{B*}_y)\sin(\omega\Delta t) \big] \\
-	J^L_{yy} &= \frac14\big[\I^B+\I^A+\Q^B-\Q^A - (\I^B-\I^A+\Q^B+\Q^A)\cos(\omega\Delta t) -
+	P^L_{yy} &= \frac14\big[\I^B+\I^A+\Q^B-\Q^A - (\I^B-\I^A+\Q^B+\Q^A)\cos(\omega\Delta t) -
 		4\Im\langle\J^B_x\J^{A*}_y\rangle\sin(\omega\Delta t) \big ]\\
-	J^L_{xy} &= \frac14\big[\U^A-\U^B - i\V^A-i\V^B + (\U^A+\U^B -i\V^A+i\V^B)\cos(\omega\Delta t)
+	P^L_{xy} &= \frac14\big[\U^A-\U^B - i\V^A-i\V^B + (\U^A+\U^B -i\V^A+i\V^B)\cos(\omega\Delta t)
 		+2i\langle\J^A_x\J^{B*}_x+\J^B_y\J^{A*}_y\rangle\sin(\omega\Delta t)
 \end{align}
 Hence
@@ -120,7 +121,7 @@ therefore uncorrelated, and all the cross-terms disappear.
 	\I^L &= \frac12\big[\I^A+\I^B+(\I^A-\I^B)\cos(\omega\Delta t)\big] &
 	\Q^L &= \frac12\big[\Q^A-\Q^B+(\Q^A+\Q^B)\cos(\omega\Delta t)\big] \notag \\
 	\V^L &= \frac12\big[\V^A+\V^B+(\V^A-\V^B)\cos(\omega\Delta t)\big] &
-	\U^L &= \frac12\big[\U^A-\U^B+(\U^A+\U^B)\cos(\omega\Delta t)\big]
+	\U^L &= \frac12\big[\U^A-\U^B+(\U^A+\U^B)\cos(\omega\Delta t)\big] \label{eq:single}
 \end{align}
 
 \paragraph{Double barrel mode}
@@ -135,7 +136,7 @@ So in this case $\vec \J^B = \gamma \vec\J^A$ with $\gamma = e^{-i\omega\tau}$.
 	\I^L &= \I^A+\V^A\cos(\omega\tau)\sin(\omega\Delta t) &
 	\Q^L &= \Q^A\cos(\omega\Delta t)-\U^A\sin(\omega\tau)\sin(\omega\Delta t) \notag \\
 	\V^L &= \V^A-I^A\cos(\omega\tau)\sin(\omega\Delta t) &
-	\U^L &= \U^A\cos(\omega\Delta t)-\Q^A\sin(\omega\tau)\sin(\omega\Delta t)
+	\U^L &= \U^A\cos(\omega\Delta t)-\Q^A\sin(\omega\tau)\sin(\omega\Delta t) \label{eq:double}
 \end{align}
 If the barrels are not perfectly collimated, or if they have asymmetric sidelobes,
 then the situation will be more complicated, as only part of the radiation that
@@ -148,58 +149,78 @@ easily disentangled from the main signal which is symmetric. Their absence
 from the simulation should therefore impact our results meaninfully.
 
 In the absence of the leakage terms, the signal in double barrel mode is
-identical to that of single barrel mode with $(I^A,Q^A,U^A,V^A)=(I^B,Q^B,U^B,V^B)$.
+identical to that of single barrel mode with $(I^A,Q^A,U^A,V^A)=(I^B,Q^B,U^B,V^B)$,
+so we can use the single barrel eqs~(\ref{eq:single}) in the following
+without further loss of generality.
 
-\subsection{Detectors}
+\subsection{Detector response}
 PIXIE has an x and y-oriented detector in each horn. The power deposited on each
 of these is
 \begin{align}
-	P^L_x &= \frac14 \int_0^\infty \big(\I^L(\omega)+\Q^L(\omega)\big) d\omega &
-	P^L_y &= \frac14 \int_0^\infty \big(\I^L(\omega)-\Q^L(\omega)\big) d\omega
+	s^L_x(\Delta t)
+		&= \frac14 \int_0^\infty\Big(\I^A+\I^B+\Q^A-\Q^B + (\I^A-\I^B+\Q^A+\Q^B)\cos(\omega\Delta t)\Big)d\omega \notag \\
+		&= \frac14 \big[I^A+I^B+Q^A-Q^B\big]_0 + \frac14\big[I^A-I^B+Q^A+Q^B\big]_{\Delta t} \notag \\
+	s^L_y(\Delta t)
+		&= \frac14 \big[I^B+I^A+Q^B-Q^A\big]_0 - \frac14\big[I^B-I^A+Q^B+Q^A\big]_{\Delta t} \notag \\
+	s^R_x(\Delta t)
+		&= \frac14 \big[I^B+I^A+Q^B-Q^A\big]_0 + \frac14\big[I^B-I^A+Q^B+Q^A\big]_{\Delta t} \notag \\
+	s^R_y(\Delta t)
+		&= \frac14 \big[I^A+I^B+Q^A-Q^B\big]_0 - \frac14\big[I^A-I^B+Q^A+Q^B\big]_{\Delta t}
 \end{align}
-where all the quantities depend on $\Delta t$ and potentially $\tau$. Here
+where all the quantities depend on $\Delta t$ and potentially $\tau$,
+and where these are total stokes parameters, not the per-frequency ones,
+e.g. $I = \int_0^\infty \I(\omega) d\omega$, and $[\ldots]_{\Delta t}$
+means that the quantities within should be evaluated at the time delay in
+the subscript. {\color{red}Here
 one factor of 1/2 comes from the linear combination of $I$ and $Q$, while
 the other one takes into account that the power of a harmonic wave is half
-its squared amplitude.
+its squared amplitude. Removed this (was $\frac18$ before removing).
+Need to figure out normalization
+of Jones vectors and bounds of integrals, but we want I to represent
+the total power, not twice the total power. But the magnetic
+field has power too. This is where the energy is when E is zero.
+This gives the factor of 2 we were missing.}
 
-\section{What PIXIE observes}
-Nominally, what PIXIE's 4 detectors observe at any given time is
+Combining this with the effect of pixie's pointing on the sky,
+we can express the total detector response as
 \begin{align}
-\vec s_\textrm{det}(t) &= \overbrace{\frac14\begin{bmatrix}
+\vec s_\textrm{det}(t) &= \overbrace{\frac12\begin{bmatrix}
 	\vec e_I+\vec e_Q & 0 \\
 	\vec e_I-\vec e_Q & 0 \\
 	0 & \vec e_I+\vec e_Q  \\
 	0 & \vec e_I-\vec e_Q \end{bmatrix}}^\textrm{Detector response}
 	\cdot
 	\overbrace{\frac12\begin{bmatrix}
-	1 &  D_I-D_P & 1 & -D_I+D_P \\
-	D_I-D_P	& 1 & -D_I+D_P & 1
+	1 &  M &  1 & -M \\
+	M &  1 & -M &  1
 	\end{bmatrix}}^\textrm{Horn response}
 	\cdot
 	\overbrace{\begin{bmatrix}
-	R_{1t}\cdot\vec s_{\textrm{sky}1}(\hat p_{1t},0) \\
-	R_{2t}\cdot\vec s_{\textrm{sky}2}(\hat p_{2t},0) \\
-	R_{1t}\cdot\vec s_{\textrm{sky}1}(\hat p_{1t},\tau) \\
-	R_{2t}\cdot\vec s_{\textrm{sky}2}(\hat p_{2t},\tau)
+	R_{1t}\cdot\vec s_{\textrm{sky},A}(\hat p_{1t},0) \\
+	R_{2t}\cdot\vec s_{\textrm{sky},B}(\hat p_{2t},0) \\
+	R_{1t}\cdot\vec s_{\textrm{sky},A}(\hat p_{1t},\Delta t) \\
+	R_{2t}\cdot\vec s_{\textrm{sky},B}(\hat p_{2t},\Delta t)
 	\end{bmatrix}}^\textrm{Barrel signal}
 	\label{eq:response}
 \end{align}
 where $\hat p_{bt}$ is the sky pointing of barrel $b$ at time $t$,
-$\vec s_{\textrm{sky},b}(\hat p,\tau)$ is the beam-smoothed,
+$\vec s_{\textrm{sky},b}(\hat p,\Delta t)$ is the beam-smoothed,
 frequency-weighted sky autocorrelation
-function for the given pointing and time delay as seen by barrel $b$
+function Stokes vectors for the given pointing and time delay as
+seen by barrel $b$
 (different barrels can see different skies because one barrel may
 be covered by a blackbody calibrator),
 $R_{bt}$ is
 a matrix that rotates the polarization basis from sky to instrument
-coordinates, $D_I$ and $D_P$ are Stokes mixing matrixes given by
-$D_I = \textrm{diag}(1,0,0)$ and $D_P = \textrm{diag}(0,1,1)$,
-and $\vec e_I = (1,0,0)$ and $\vec e_P = (0,1,1)$ are Stokes basis
-vectors. PIXIE's interferometry shows up in two ways here:
+coordinates, $M = \textrm{diag}(1,-1,-1,1)$ is a matrix that flips
+the sign of linear polarization,
+and $\vec e_I = (1,0,0,0)$ and $\vec e_Q = (0,1,0,0)$ are Stokes
+I and Q basis vectors. PIXIE's interferometry shows up in two ways here:
 The sky autocorrelation function, rather than just its intensity,
 is what is measured; and the barrel signal differencing in the horn
 response.
 
+\subsection{Readout}
 Of course, a real instrument does not read out data with infinite
 time resolution, but as a set of discrete samples, each of which is
 noisy. The PIXIE hardware will also apply a bandpass filter to avoid
@@ -210,20 +231,6 @@ we model the time-ordered data as
 \end{align}
 where $i$ is the sample index, $B$ is the bandpass filter, $\Delta t$ is the sample
 interval and $\vec n_i$ is the noise in sample $i$.
-
-To simulate this, we need to be able to
-\begin{enumerate}
-	\item Generate a simulated sky
-	\item Compute the telescope pointing $\hat p$ and associated polarization rotation
-	matrix $R$ and relative path delay $\tau$ at each time $t$ for each barrel.
-	\item Evaluate the autocorrelation function for each component of the sky as
-	seen by each barrel for any $\hat p$ and $\tau$.
-	\item Find the detecor response using equation~\ref{eq:response}.
-	\item Integrate across subsample variation, and apply the time-frequency
-	response and detector noise.
-\end{enumerate}
-
-\section{Simulating the sky components}
 
 \section{Pointing}
 PIXIE will orbit at the Sun-Earth L2 point, placing it in the ecliptic, with
@@ -240,8 +247,8 @@ the observed polarization and reject systematics: $\alpha_\textrm{spin} =
 \alpha_{\textrm{spin},0} + 360\degree\frac{t-t_0}{T_\textrm{spin}}$. And finally,
 while it is spinning the dihedral mirror sweeps backwards and forwards at constant
 speed, varying the path length time difference in the fourier transform spectrometer
-by $\tau = A_\textrm{delay}c^{-1} \textrm{triangle}\Big(\frac{t-t_0}{T_\textrm{stroke}}$,
-with $A_\textrm{delay} = 10.40303 \textrm{mm}$ for the purposes of this paper, but
+by $\Delta t = A_\textrm{delay}\textrm{triangle}\Big(\frac{t-t_0}{T_\textrm{stroke}}\Big)$,
+with $A_\textrm{delay} = 10.40303 \textrm{mm}/c$ for the purposes of this paper, but
 varying somewhat by observing mode in the real experiment, and with
 $\textrm{triangle}(x)$ being the triangle wave with period 1, mean 0 and a zero
 crossing at $x=0$.
@@ -288,9 +295,10 @@ polarization basis rotation, and corresponds to a Stokes rotation
 matrix
 \begin{align}
 	R &= \begin{bmatrix}
-		1 & 0 & 0 \\
-		0 & \cos(2\gamma) & -\sin(2\gamma) \\
-		0 & \sin(2\gamma) & \cos(2\gamma)
+		1 & 0 & 0 & 0\\
+		0 & \cos(2\gamma) & -\sin(2\gamma) & 0\\
+		0 & \sin(2\gamma) & \cos(2\gamma) & 0 \\
+		0 & 0 & 0 & 1
 	\end{bmatrix}
 \end{align}
 
@@ -299,9 +307,11 @@ matrix
 \section{Evaluating the sky autocorrelation function at the observed location}
 As PIXIE observes the sky it mesures the autocorrelation function of the
 radiation coming from the points it scans past. To simulate the PIXIE signal
-we therefore need to be able to evaluate the I, Q and U autocorrelation functions at
-an arbitrary point $\hat p$ on the sky for an arbitrary phase delay $\tau$
-for each component that makes up the sky (CMB, dust, etc.).
+we therefore need to be able to evaluate the I, Q and U autocorrelation
+functions
+\footnote{We're ignoring V polarization here. See section~\ref{s:stokes}.}
+at an arbitrary point $\hat p$ on the sky for an arbitrary phase
+delay $\Delta t$ for each component that makes up the sky (CMB, dust, etc.).
 
 \subsection{Approaches that don't work}
 A straightforward and general way of doing this would be to precompute the
@@ -309,7 +319,7 @@ full-sky autocorrelation function: Evaluate the full-sky spectrum at equi-spaced
 frequencies. Apply the beam to each frequency map and scale each frequency by
 the instrument's frequency response. Fourier transform the result
 to get a (pixelized version of) the full-sky autocorrelation function. To read off
-the value at a general $(\hat p, \tau)$ one would then do an interpolated lookup
+the value at a general $(\hat p, \Delta t)$ one would then do an interpolated lookup
 in this $N_\textrm{pix}$ by $N_\textrm{delay}$ data cube. This approach has the
 advantage of being able to handle frequency-dependent beams, which is otherwise
 very hard to implement. However, in order to be able to investigate the effect
@@ -327,7 +337,7 @@ spectrum in one pixel independently of the rest of the sky. With this, we could
 imagine the following approach: For each sample, interpolate the spectrum parameters
 at $\hat p$, then evaluate the whole spectrum, apply the frequency response,
 fourier transform it,
-and interpolate the value for $\tau$. In our example above, this would reduce
+and interpolate the value for $\Delta t$. In our example above, this would reduce
 the RAM requirements by a factor of 5000. But it would introduce another prohibitive
 cost: The need to evaluate the spectrum at thousands of frequencies and fourier transform
 these for every sample in the TOD.\footnote{
@@ -371,23 +381,29 @@ where
 \end{align*}
 and where $p = \frac{2h\nu^3\rho(\nu)}{c^2}$, $a = h\nu/k$ and $\Delta T(\hat p) = T(\hat p)-T_0$ with $T_0 = 2.725$K. 
 
-The autocorrelation function is simply the fourier transform of the spectral power
+The autocorrelation function is simply the cosine transform of the spectral power
 density,
 \begin{align}
-I_\tau(\tau) &= \int_{-\infty}^\infty e^{2\pi i \nu \tau} I_\nu(\nu) d\nu = \tilde I_\nu(\tau)
+	I_{\Delta t}(\Delta t) &= \int_{0}^\infty I_\nu(\nu) \cos(2\pi\nu\Delta t) d\nu
+	\equiv \bar I_\nu(\Delta t)
 \end{align}
+where $\bar{x}$ indicates the cosine transform of $x$.
+{\color{red}This is confusing. Tilde quantities are consistently
+in frequency space in the interferometry section, but here the visually
+similar bars indiate the cosine transform of a frequency space quantity
+into a real space quantity.}
 Applying this to the Taylor expansion, we get
 \begin{align}
-I^\textrm{CMB}_{\tau,I}(\hat p,\tau) &= \tilde f_0(\tau) + \tilde f_1(\tau) \Delta T + \frac12 \tilde f_2(\tau) \Delta T^2 + \frac16 \tilde f_3(\tau) \Delta T^3
+I^\textrm{CMB}_{\Delta t,I}(\hat p,\Delta t) &= \bar f_0(\Delta t) + \bar f_1(\Delta t) \Delta T + \frac12 \bar f_2(\Delta t) \Delta T^2 + \frac16 \bar f_3(\Delta t) \Delta T^3
 \end{align}
-Hence, we can compute the autocorrelation for any $\hat p,\tau$ if we simply precompute
+Hence, we can compute the autocorrelation for any $\hat p,\Delta t$ if we simply precompute
 the four position-independent functions $\{f_i\}$.\footnote{
 If we had not needed to support the frequency response of the instrument,
 we could have avoided the Taylor expansion by absorbing variation in $T$
 into rescaling of $v$. Sadly, PIXIE has significant damping at high frequency,
 so this approach does not work.} The CMB has frequency-independent polarization,
 so the $Q,U$ autocorrelation functions can be derived from $I$ by scaling them by
-the local $Q,U$ polarization fractions. I.e. $I^\textrm{CMB}_{\tau,Q|U}(\hat p,\tau) = I^\textrm{CMB}_{\tau,I}(\hat p,\tau) \frac{I^\textrm{CMB}_{\textrm{ref},Q|U}(\hat p)}{I^\textrm{CMB}_{\textrm{ref},I}(\hat p)}$.
+the local $Q,U$ polarization fractions. I.e. $I^\textrm{CMB}_{\Delta t,Q|U}(\hat p,\Delta t) = I^\textrm{CMB}_{\Delta t,I}(\hat p,\Delta t) \frac{I^\textrm{CMB}_{\textrm{ref},Q|U}(\hat p)}{I^\textrm{CMB}_{\textrm{ref},I}(\hat p)}$.
 
 \subsubsection{Dust}
 We model the dust as a modified blackbody with constant
@@ -402,7 +418,7 @@ already position-independent, so we don't actually need to Taylor-expand in this
 We just need to precompute a single autocorrelation shape which is rescaled for each
 pointing.
 \begin{align}
-I^\textrm{dust}_{\tau,i}(\hat p,\tau) &= A_i(\hat p) \tilde f_{0\beta}(\tau)
+I^\textrm{dust}_{\Delta t,i}(\hat p,\Delta t) &= A_i(\hat p) \bar f_{0\beta}(\Delta t)
 \end{align}
 This will need to be modified for more complicated dust models. If $T$ or $\beta$
 only change slightly, then the Taylor expansion approach can be used. For more
@@ -433,7 +449,8 @@ effects of the telescope beam, the response of this assembly is
 \end{align}
 The other horn follows by symmetry.
 Here $[\ldots]_\tau$ means that
-the bracketed quantities were evaluated with a time delay $\tau$. For
+the bracketed quantities were evaluated with a time delay $\tau$.
+For
 example $[I]_\tau \equiv \langle E_x(t)E_x(t+\tau)\rangle + \langle E_y(t)E_y(t+\tau)\rangle$.
 These $\tau$ terms represent the autocorrelation function of the incoming
 light, which is related to the spectrum of the light through a fourier transform.
@@ -448,5 +465,22 @@ response of $\frac12(I+Q)$) and the other $E_y$ (corresponding to $\frac12(I-Q)$
 This orthogonality is useful for rejecting systematic errors, but we allow an arbitrary
 Stokes response per detector in the simulator to be able to test the effect of any
 non-orthoginality.
+
+
+
+
+To simulate this, we need to be able to
+\begin{enumerate}
+	\item Generate a simulated sky
+	\item Compute the telescope pointing $\hat p$ and associated polarization rotation
+	matrix $R$ and relative path delay $\Delta t$ at each time $t$ for each barrel.
+	\item Evaluate the autocorrelation function for each component of the sky as
+	seen by each barrel for any $\hat p$ and $\Delta t$.
+	\item Find the detecor response using equation~\ref{eq:response}.
+	\item Integrate across subsample variation, and apply the time-frequency
+	response and detector noise.
+\end{enumerate}
+
+\section{Simulating the sky components}
 
 \end{document}
