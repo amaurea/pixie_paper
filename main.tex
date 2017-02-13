@@ -1,6 +1,9 @@
 \documentclass{article}
 \usepackage{amsmath,gensymb,color}
 \usepackage[margin=22mm]{geometry}
+\newcommand{\code}[1]{\texttt{#1}}
+\renewcommand{\Re}{\operatorname{Re}}
+\renewcommand{\Im}{\operatorname{Im}}
 \newcommand{\rtwo}{\frac{1}{\sqrt{2}}}
 \newcommand{\rtd}{\frac{\delta^+}{\sqrt{2}}}
 \newcommand{\rtc}{\frac{\delta^-}{\sqrt{2}}}
@@ -9,8 +12,6 @@
 \newcommand{\U}{\tilde U}
 \newcommand{\V}{\tilde V}
 \newcommand{\J}{{\tilde E}}
-\renewcommand{\Re}{\operatorname{Re}}
-\renewcommand{\Im}{\operatorname{Im}}
 
 \begin{document}
 
@@ -316,12 +317,12 @@ delay $\Delta t$ for each component that makes up the sky (CMB, dust, etc.).
 \subsection{Approaches that don't work}
 A straightforward and general way of doing this would be to precompute the
 full-sky autocorrelation function: Evaluate the full-sky spectrum at equi-spaced
-frequencies. Apply the beam to each frequency map and scale each frequency by
-the instrument's frequency response. Fourier transform the result
+frequencies; apply the beam to each frequency map and scale each frequency by
+the instrument's frequency response; and Fourier transform the result
 to get a (pixelized version of) the full-sky autocorrelation function. To read off
 the value at a general $(\hat p, \Delta t)$ one would then do an interpolated lookup
 in this $N_\textrm{pix}$ by $N_\textrm{delay}$ data cube. This approach has the
-advantage of being able to handle frequency-dependent beams, which is otherwise
+advantage of being able to handle frequency-dependent beams, which are otherwise
 very hard to implement. However, in order to be able to investigate the effect
 of sub-resolution features (both spectrally and spatially) this data cube would
 need to be pixelized at many times higher resolution than the PIXIE output map.
@@ -381,7 +382,9 @@ where
 \end{align*}
 and where $p = \frac{2h\nu^3\rho(\nu)}{c^2}$, $a = h\nu/k$ and $\Delta T(\hat p) = T(\hat p)-T_0$ with $T_0 = 2.725$K. 
 
-The autocorrelation function is simply the cosine transform of the spectral power
+The autocorrelation function is simply the cosine transform\footnote{
+We implemented the cosine transform using a discrete cosine transform with a
+sample interval of 0.5 GHz and a max frequency of 6.8 THz.} of the spectral power
 density,
 \begin{align}
 	I_{\Delta t}(\Delta t) &= \int_{0}^\infty I_\nu(\nu) \cos(2\pi\nu\Delta t) d\nu
@@ -401,7 +404,14 @@ the four position-independent functions $\{f_i\}$.\footnote{
 If we had not needed to support the frequency response of the instrument,
 we could have avoided the Taylor expansion by absorbing variation in $T$
 into rescaling of $v$. Sadly, PIXIE has significant damping at high frequency,
-so this approach does not work.} The CMB has frequency-independent polarization,
+so this approach does not work.} Evaluating the CMB autocorrelation at ($\hat p,\Delta t$)
+is hence reduced to being able to evaluate a sampled version of $\{f_i\}$
+at (non-sample) position $\Delta t$ and
+the full-sky pixelized map $\Delta T$ at (non-pixel) position $\hat p$.
+We perform both of these using (bi-)cubic spline interpolation
+from \code{numpy.ndimage.map\_coordinates}.
+
+The CMB has frequency-independent polarization,
 so the $Q,U$ autocorrelation functions can be derived from $I$ by scaling them by
 the local $Q,U$ polarization fractions. I.e. $I^\textrm{CMB}_{\Delta t,Q|U}(\hat p,\Delta t) = I^\textrm{CMB}_{\Delta t,I}(\hat p,\Delta t) \frac{I^\textrm{CMB}_{\textrm{ref},Q|U}(\hat p)}{I^\textrm{CMB}_{\textrm{ref},I}(\hat p)}$.
 
@@ -430,6 +440,7 @@ The results reported here are based on simulations that only include CMB and dus
 but other components such as synchrotron, free-free, CO, AME, etc. can be implemented
 in a similar vein as above, as long as they can be approximated as a sum of
 constant-spectral-shape components or can be Taylor-expanded to sufficient accuracy.
+
 
 \section{TOD simulation}
 \emph{This was written independently of the above, and needs to be unified with it.
