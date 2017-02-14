@@ -139,7 +139,7 @@ So in this case $\vec \J^B = \gamma \vec\J^A$ with $\gamma = e^{-i\omega\tau}$.
 	\V^L &= \V^A-I^A\cos(\omega\tau)\sin(\omega\Delta t) &
 	\U^L &= \U^A\cos(\omega\Delta t)-\Q^A\sin(\omega\tau)\sin(\omega\Delta t) \label{eq:double}
 \end{align}
-If the barrels are not perfectly collimated, or if they have asymmetric sidelobes,
+If the barrels are not perfectly collimated, or if they have asymmetric sidelobes or different beam size,
 then the situation will be more complicated, as only part of the radiation that
 enters the barrels will be correlated.
 
@@ -172,18 +172,11 @@ where all the quantities depend on $\Delta t$ and potentially $\tau$,
 and where these are total stokes parameters, not the per-frequency ones,
 e.g. $I = \int_0^\infty \I(\omega) d\omega$, and $[\ldots]_{\Delta t}$
 means that the quantities within should be evaluated at the time delay in
-the subscript. {\color{red}Here
-one factor of 1/2 comes from the linear combination of $I$ and $Q$, while
-the other one takes into account that the power of a harmonic wave is half
-its squared amplitude. Removed this (was $\frac18$ before removing).
-Need to figure out normalization
-of Jones vectors and bounds of integrals, but we want I to represent
-the total power, not twice the total power. But the magnetic
-field has power too. This is where the energy is when E is zero.
-This gives the factor of 2 we were missing.}
+the subscript.
 
 Combining this with the effect of pixie's pointing on the sky,
-we can express the total detector response as
+we can express the total detector response as a function of the
+sky autocorrelation functions.
 \begin{align}
 \vec s_\textrm{det}(t) &= \overbrace{\frac12\begin{bmatrix}
 	\vec e_I+\vec e_Q & 0 \\
@@ -231,7 +224,16 @@ we model the time-ordered data as
 	\vec d_i = B_{ij} \int_{t_j-\Delta t/2}^{t_j+\Delta t/2} \vec s_\textrm{det}(t) \textrm{d}t + \vec n_i
 \end{align}
 where $i$ is the sample index, $B$ is the bandpass filter, $\Delta t$ is the sample
-interval and $\vec n_i$ is the noise in sample $i$.
+interval and $\vec n_i$ is the noise in sample $i$. We implement this
+sample integral by using Gaussian quadrature with $N_\textrm{sub}$ sub-samples,
+with a typical value of $N_\textrm{sub}$ being 7. See section~\ref{s:accuracy}
+for a discussion of the effect of the number of sub-samples.
+
+For the bandpass filter we used a Butterworth bandpass filter.
+\begin{align}
+	B(f) &= \Big(1+\Big[\frac{f}{0.01\textrm{Hz}}\Big]^{-5}\Big)^{-1}
+		\Big(1+\Big[\frac{f}{100\textrm{Hz}}\Big]^{5}\Big)^{-1}
+\end{align}
 
 \section{Pointing}
 PIXIE will orbit at the Sun-Earth L2 point, placing it in the ecliptic, with
@@ -415,6 +417,17 @@ The CMB has frequency-independent polarization,
 so the $Q,U$ autocorrelation functions can be derived from $I$ by scaling them by
 the local $Q,U$ polarization fractions. I.e. $I^\textrm{CMB}_{\Delta t,Q|U}(\hat p,\Delta t) = I^\textrm{CMB}_{\Delta t,I}(\hat p,\Delta t) \frac{I^\textrm{CMB}_{\textrm{ref},Q|U}(\hat p)}{I^\textrm{CMB}_{\textrm{ref},I}(\hat p)}$.
 
+The input CMB map $\Delta T,Q,U$ was simulated by drawing random, Gaussian
+T,E,B and $\phi$ spherical harmonics coefficients from a typical CMB power spectrum
+as output by CAMB\footnote{The spectrum used is provided in the file \code{
+	inputs/cl\_lensinput.dat}.} and projecting them on a sky with $0.1\degree$
+pixels in equirectangular (CAR) projection using the \code{libsharp} Spherical
+Harmonics Transform library \cite{libsharp}. The lensing potential $\phi$ was then used to
+lens the T, Q and U maps. We then added the 2.725 K CMB monopole to the T
+component before doppler boosting the sky\footnote{$\beta=0.0012301$ towards
+ecliptic coordinates $l=171.646$, $b=-11.141$.}
+to account for our motion relative to the CMB, resulting in the CMB dipole.
+
 \subsubsection{Dust}
 We model the dust as a modified blackbody with constant
 $T=19.6$K and $\beta=1.59$, but varying opacity. The observed spectrum is thus
@@ -435,11 +448,28 @@ only change slightly, then the Taylor expansion approach can be used. For more
 substantial variation, a better approach may be to model it as several dust components,
 each with fixed parameters.
 
+The input dust map was simulted using the Planck Sky Model \cite{psm} code \code{PySM}
+of a thermal dust-only sky evaluated at 600 GHz (with no bandpass).
+This was computed at HEALPix $N_\textrm{side} = 512$, but the polarization
+map \code{PySM} produces is limited to $2\degree$ resolution due to the limited
+resolution of the Planck polarized dust maps it uses as input. This HEALPix map
+was then repixelized to $0.1\degree$ equirectangular (CAR) pixelization in
+ecliptic coordinates by computing its spherical harmonics coefficients,
+projecting these onto CAR, and then rotating from galactic to ecliptic coordinates
+using bicubic spline interpolation and rotating the polarization vectors to compensate.
+
 \subsubsection{Other components}
 The results reported here are based on simulations that only include CMB and dust,
 but other components such as synchrotron, free-free, CO, AME, etc. can be implemented
 in a similar vein as above, as long as they can be approximated as a sum of
 constant-spectral-shape components or can be Taylor-expanded to sufficient accuracy.
+
+\subsubsection{The PIXIE frequency response}
+PIXIE's frequency response is limited above 1-2 THz by the roughness of the mirrors.
+We model this as $\rho(\nu) = e^{-\left[\frac{\nu}{1.5\textrm{THz}}\right]^2}$.
+
+
+
 
 
 \section{TOD simulation}
