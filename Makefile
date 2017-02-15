@@ -1,3 +1,4 @@
-opts="-halt-on-error -draftmode"
+opts=-halt-on-error -draftmode
 main.pdf: main.tex
-	pdflatex $< $(opts) && pdflatex $< $(opts) && pdflatex $<
+	#pdflatex $< $(opts) && pdflatex $< $(opts) && pdflatex $<
+	pdflatex $<

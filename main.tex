@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{amsmath,gensymb,color}
+\usepackage{amsmath,gensymb,color,graphicx,array}
 \usepackage[margin=22mm]{geometry}
 \newcommand{\code}[1]{\texttt{#1}}
 \renewcommand{\Re}{\operatorname{Re}}
@@ -226,7 +226,7 @@ we model the time-ordered data as
 where $i$ is the sample index, $B$ is the bandpass filter, $\Delta t$ is the sample
 interval and $\vec n_i$ is the noise in sample $i$. We implement this
 sample integral by using Gaussian quadrature with $N_\textrm{sub}$ sub-samples,
-with a typical value of $N_\textrm{sub}$ being 7. See section~\ref{s:accuracy}
+with a typical value of $N_\textrm{sub}$ being 9. See section~\ref{s:accuracy}
 for a discussion of the effect of the number of sub-samples.
 
 For the bandpass filter we used a Butterworth bandpass filter.
@@ -522,5 +522,77 @@ Each such beam component is defined by specifying
 $\Delta\phi$ and $\Delta\theta$ (see eq.~(\ref{eq:barrel})),
 a beam profile, and a Muller matrix which encodes its
 intensity and leakage properties.
+
+\section{Results}
+
+\begin{figure}
+	\centering
+	\hspace*{-15mm}\begin{tabular}{rm{56mm}m{54.4mm}m{56mm}}
+		& \hspace{32mm}T & \hspace{32mm}Q & \hspace{32mm}U \\
+		CMB &
+		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_1_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_1_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/sim_freqmap_58GHz_1_2.png} \\
+		Dust &
+		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_2_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_2_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/sim_freqmap_58GHz_2_2.png} \\
+		Total &
+		\includegraphics[height=29.7mm,clip,trim=0 0mm 7.5mm 0]{plots/sim_freqmap_58GHz_0_0.png} &
+		\includegraphics[height=29.7mm,clip,trim=7.5mm 0mm 7.5mm 0]{plots/sim_freqmap_58GHz_0_1.png} &
+		\includegraphics[height=29.7mm,clip,trim=7.5mm 0mm 0 0]{plots/sim_freqmap_58GHz_0_2.png}
+	\end{tabular}
+	\caption{The input beam-smoothed sky model evaluated at 58 GHz in the CAR
+	projection in ecliptic coordinates. The color range is
+	$\pm 400$ kJy/sr in T and $\pm 200$ Jy/sr in P, except for dust T where it is
+	$\pm 5$ kJy/sr. The mean has been subtracted in each map for plotting purposes.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{tabular}{cc}
+		\includegraphics[width=0.48\textwidth,trim=8mm 0 0mm 0mm]{plots/tod000_full.png} &
+		\includegraphics[width=0.48\textwidth,trim=8mm 0 0mm 0mm]{plots/tod000_10min.png} \\
+		\includegraphics[width=0.48\textwidth,trim=8mm 0 0mm 0mm]{plots/tod000_1min.png} &
+		\includegraphics[width=0.48\textwidth,trim=8mm 0 0mm 0mm]{plots/tod000_stroke.png}
+	\end{tabular}
+	\caption{Noiseless simulated PIXIE time-ordered data for the Lx
+	detector on various time scales. \emph{Top left}: A whole great-circle
+	scan of the sky, starting at ecliptic coordinates $l=0\degree$,
+	$b=0\degree$ and scanning in longitude. The two peaks are crossings
+	of the galactic plane. \emph{Top right}: Zoom on the first 10 minutes.
+	We see that the signal is modulated on 3 time-scales: The sky signal
+	changes on minute time-scales due to the scan; the polarization is
+	modulated on 15 second time-scales due to PIXIE's spin; and the
+	signal is modulated on second time-scales by the mirror stroke.
+	\emph{Bottom left}: Zoom on a single pixie spin. The slowly
+	changing baseline is the DC signal, which PIXIE will not attempt
+	to measure due to its suceptibility to 1/f noise. \emph{Bottom
+	right}: Zoom on a single mirror half-stroke, centered on
+	$\Delta t=0$. This is effectively a plot of the electric field's
+	autocorrelation function at this position.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\hspace*{-15mm}\begin{tabular}{rm{56mm}m{54.4mm}m{56mm}}
+		& \hspace{32mm}T & \hspace{32mm}Q & \hspace{32mm}U \\
+		Input &
+		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_0_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_0_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/sim_freqmap_58GHz_0_2.png} \\
+		Error &
+		\includegraphics[height=29.7mm,clip,trim=0 0 7.5mm 0]{plots/map11_sub9_diff_58GHz_scaled_0.png} &
+		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 7.5mm 0]{plots/map11_sub9_diff_58GHz_scaled_1.png} &
+		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 0 0]{plots/map11_sub9_diff_58GHz_scaled_2.png}
+	\end{tabular}
+	\caption{\emph{Top row}: The beam-smoothed simulated input map at 58 GHz.
+			The color range is $\pm 400$ kJy/sr for T and $\pm 200$ Jy/sr for P.
+		\emph{Bottom row}: Difference between the mapmaking output maps and
+			input maps at the same frequency for a noise-less simulation.
+			The color range is $\pm 1.7$ Jy/sr for T and $\pm 2.5$ mJy/sr for P.
+			These represent the bias of the simulator-mapmaker combination.}
+\end{figure}
+
 
 \end{document}
