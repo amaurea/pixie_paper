@@ -627,4 +627,27 @@ intensity and leakage properties.
 	of the signal in P.}
 \end{figure}
 
+\begin{figure}
+	\centering
+	\hspace*{-2mm}\begin{tabular}{cc}
+		T & Q \\
+		\includegraphics[height=70mm,clip,trim=0 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_T.pdf} &
+		\includegraphics[height=70mm,clip,trim=30mm 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_Q.pdf}
+	\end{tabular}
+	\caption{The effect of sample window and fourier shift distance on the
+	mapmaking bias. Both of these are examples of subpixel bias. The sample
+	window error comes from the mismatch between the gaussian quadrature that is
+	used to integrate the sample window and the fourier-space deconvolution that
+	is used to remove it. It rises with frequency and is a $\sim 10^{-7}$ error
+	at 1 THz. The fourier shift error comes from the mismatch between the
+	high-res bicubic subpixel behavior of the sky in the simulator and the
+	bandlimited fourier model used in the mapmaker. It has a surprisingly large
+	dependence on the interpolation distance. Spin-1 fourier shifting has
+	twice the interpolation distance of Spin-2 fourier shifting, but $10^3-10^4$
+	times are large a bias. The red curve shows the error for a
+	monopole-only sky when using no sample window, demonstrating
+	that aside from subpixel biases the accuracy is close to double
+	precision float error.}
+\end{figure}
+
 \end{document}
