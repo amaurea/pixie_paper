@@ -586,7 +586,8 @@ intensity and leakage properties.
 		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 7.5mm 0]{plots/map11_sub9_diff_58GHz_scaled_1.png} &
 		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 0 0]{plots/map11_sub9_diff_58GHz_scaled_2.png}
 	\end{tabular}
-	\caption{\emph{Top row}: The beam-smoothed simulated input map at 58 GHz.
+	\caption{Simulator/mapmaker spatial bias test.
+		\emph{Top row}: The beam-smoothed simulated input map at 58 GHz.
 			The color range is $\pm 400$ kJy/sr for T and $\pm 200$ Jy/sr for P.
 		\emph{Bottom row}: Difference between the mapmaking output maps and
 			input maps at the same frequency for a noise-less simulation.
@@ -594,5 +595,36 @@ intensity and leakage properties.
 			These represent the bias of the simulator-mapmaker combination.}
 \end{figure}
 
+\begin{figure}
+	\centering
+	\hspace*{-13mm}\begin{tabular}{m{59mm}m{59mm}m{59mm}}
+		\hspace{30mm}Input & \hspace{20mm}Interpolations & \hspace{30mm}Residual \\
+		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_input.pdf} &
+		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_interpol.pdf} &
+		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_residual.pdf}
+	\end{tabular}
+	\caption{1-dimensional toy example of subpixel mismatch bias.
+	\emph{Left}: The input data set, which is a densely sampled sine wave with
+	25 points per wavelength. \emph{Middle}: Two models for the sub-pixel behavior
+	of the data set (fourier and spline interpolation) disagree slightly.
+	\emph{Right}: The residual after shifting the dataset right by half a sample
+	(i.e. half-way between the red points in the middle panel) using fourier
+	(red) and spline (green) interpolation, and then back again using fourier interpolation
+	in both cases. When the forwards and backwards methods match, the result is biased.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{plots/spec_error_abs_v4_log_log_sub9.pdf}
+	\caption{Simulator/mapmaker spectral bias test. Recovered T and Q spectra and
+	their errors for a noiseless simulation
+	with 9 Gaussian quadrature subsamples per sample, compared to the pixie
+	noise level. This is all for a single pixel at $l=0\degree$,$b=0\degree$.
+	The U spectrum is similar to the Q one, but was left out to avoid clutter.
+	The bias is $\sim 100$ times lower than the noise for $\nu<500$~GHz and
+	$\sim 5$ times lower than the noise at the worst point at 2 THz. At 200
+	Hz the bias is $\sim 10^{-10}$ of the signal in T and $\sim 10^{-6}$
+	of the signal in P.}
+\end{figure}
 
 \end{document}
