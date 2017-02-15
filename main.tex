@@ -239,10 +239,10 @@ For the bandpass filter we used a Butterworth bandpass filter.
 PIXIE will orbit at the Sun-Earth L2 point, placing it in the ecliptic, with
 a heliocentric ecliptic latitude $b=0$ and longitude $l=l_0 +
 360\degree\frac{t-t_0}{T_\textrm{orbit}}$ with $T_\textrm{orbit} = 1\textrm{year}$.
-As it orbits scans great circles
+As it orbits it scans great circles
 perpendicular to the direction towards the sun, with a linearly increasing scan angle
 $\alpha_\textrm{scan} = \alpha_{\textrm{scan},0} + 360\degree \frac{t-t_0}{T_\textrm{scan}}$.
-To form an actual great circle rather than an epicycle, the scan axis does not
+To form an actual great circle the scan axis does not
 move continuously with $b$, but updates in steps after each circle has been completed:
 $\alpha_\textrm{orbit} = l_0 + 360\degree\left\lfloor\frac{t-t_0}{T_\textrm{scan}}\right\rfloor\frac{T_\textrm{scan}}{T_\textrm{orbit}}$.
 During each scan the the telescope spins around around its boresight to modulate
@@ -261,8 +261,14 @@ and scan periods will be synchronized such that there is an integer number of
 strokes in a spin, and an integer number of spins in a scan. We will use the
 values $T_\textrm{spin} = 60 \textrm{s}$, $T_\textrm{stroke} = T_\textrm{spin}/8 =
 7.5 \textrm{s}$, $T_\textrm{scan} = 384 T_\textrm{spin} = 384 \textrm{min}$ here.
-However, the simulation purposefully does not depend on integer ratios to be able
+The TOD simulator purposefully does not depend on integer ratios to be able
 to investigate the consequences of small deviations from integer ratios.
+
+In order to speed up our simulations we will modify the scanning pattern we
+simulate in one important respect. The actual L2 obital
+period given above results in about 1370 scans per orbit, which results in
+7.6 scans per PIXIE beam FWHM on the equator after half an orbit. We avoid
+this oversampling by simulating a faster $T_\textrm{orbit} = 384 T_\textrm{scan}$.
 
 A barrel-to-sky rotation matrix that implements this pointing model is
 \begin{align}
@@ -271,7 +277,7 @@ A barrel-to-sky rotation matrix that implements this pointing model is
 		R_y\Big(\frac\pi2-\alpha_\textrm{eclip}\Big)
 		R_z\big(\alpha_\textrm{scan}(t)\big)R_y\Big(\frac\pi2-\alpha_\textrm{open}\Big)
 		R_z\big(\alpha_\textrm{spin}(t)\big) \\
-	R_\textrm{barrel}(b) &= R_z\big(\Delta\phi(b)\big)R_y\big(\Delta\theta(b)\big)R_z\big(\Delta\psi(b)\big)
+	R_\textrm{barrel}(b) &= R_z\big(\Delta\phi(b)\big)R_y\big(\Delta\theta(b)\big)R_z\big(\Delta\psi(b)\big) \label{eq:barrel}
 \end{align}
 
 Here $R_\textrm{barrel}(b)$ represents the orientation of barrel $b$ relative
@@ -317,6 +323,7 @@ at an arbitrary point $\hat p$ on the sky for an arbitrary phase
 delay $\Delta t$ for each component that makes up the sky (CMB, dust, etc.).
 
 \subsection{Approaches that don't work}
+\label{s:autocorr-problems}
 A straightforward and general way of doing this would be to precompute the
 full-sky autocorrelation function: Evaluate the full-sky spectrum at equi-spaced
 frequencies; apply the beam to each frequency map and scale each frequency by
@@ -333,10 +340,13 @@ for $0.1\degree$ spatial resolution and 5000 frequency bins, storing the full-sk
 autocorrelation function would need about 700 GB of RAM.
 
 If one assumes a frequency-independent beam, which should be a good approximation
-for PIXIE, then it's sufficient to apply the beam to the parameters used to generate
-the spectrum (e.g. the CMB temperature map) rather than the spectrum itself. This
+for PIXIE, and if the spectrum can be written as a linear sum of a a smaller
+number of spatial templates, then it's sufficient to apply the beam to those
+templates rather than the spectrum itself. This
 decouples the spatial and spectral dimensions, making it possible to evaluate the
-spectrum in one pixel independently of the rest of the sky. With this, we could
+spectrum in one pixel independently of the rest of the sky.
+
+With this, we could
 imagine the following approach: For each sample, interpolate the spectrum parameters
 at $\hat p$, then evaluate the whole spectrum, apply the frequency response,
 fourier transform it,
@@ -364,8 +374,7 @@ observes the CMB with the spectrum
 I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= \rho(\nu)B_\nu(\nu, T(\hat p)) = \frac{2h\nu^3\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{kT(\hat p)}} - 1}
 \end{align}
 Here the $I$ subscript indicates the Stokes parameter, and $T(\hat p)$ is the
-\emph{beam-smoothed}\footnote{Implementation of asymetric beams is described in
-section X.} CMB temperature at pointing $\hat p$.
+CMB temperature at pointing $\hat p$.
 Including the doppler dipole, T only has a contrast of order $10^{-3}$, so a Taylor
 expansion in T will converge rapidly. Our goal is $<10^{-9}$ relative error, so an
 expansion to 3rd order, which should give order $10^{-12}$ error, should be sufficient.
@@ -435,7 +444,7 @@ $T=19.6$K and $\beta=1.59$, but varying opacity. The observed spectrum is thus
 I^\textrm{dust}_{\nu,i}(\hat p,\nu) &= A_i(\hat p) \frac{h\nu^{3+\beta}\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{kT}}-1} \equiv A_i(\hat p) f_{0\beta}(\nu)
 \end{align}
 for $i \in \{I,Q,U\}$. Here the prefactor $A_i(\hat p)$ encodes the position-dependent
-dust opacity and polarization, and should be smoothed with the instrument beam.
+dust opacity and polarization.
 Since $T$ and $\beta$ are constant, the frequency-dependent part of this spectrum is
 already position-independent, so we don't actually need to Taylor-expand in this case.
 We just need to precompute a single autocorrelation shape which is rescaled for each
@@ -468,60 +477,50 @@ constant-spectral-shape components or can be Taylor-expanded to sufficient accur
 PIXIE's frequency response is limited above 1-2 THz by the roughness of the mirrors.
 We model this as $\rho(\nu) = e^{-\left[\frac{\nu}{1.5\textrm{THz}}\right]^2}$.
 
+\section{Beams and sidelobes}
+PIXIE's beam will be approximately frequency-independent and approximately
+top-hat shaped, but we will here approximate it with a Gaussian
+with a FWHM of $1.9\degree$. As discussed in section~\ref{s:autocorr-problems},
+a frequency-independent beam is much cheaper to implement than a frequency-dependent
+one as long as the spectrum maps are linear functions of a small number of input
+maps. For our dust model this is simple - the spectrum is proportional
+to a single spatially varying dust opacity map, so it is sufficient to apply the
+beam to that map.
 
-
-
-
-\section{TOD simulation}
-\emph{This was written independently of the above, and needs to be unified with it.
-This section is still very incomplete}
-
-PIXIE observs the sky with two collimated
-barrels. There are two modes of observation: double barrel observation,
-where both barrels see the same sky; and single barrel observation, where
-one barrel is covered by a blackbody calibrator. In both cases, the
-radiation entering the barrels passes through a fourier transform
-spectometer before entering the detector feedhorns. Aside from the resolution
-effects of the telescope beam, the response of this assembly is
-\begin{align}
-	I^A_\textrm{horn} &= \frac12 [I^A+I^B]_0 + \frac12[I^A-I^B]_\tau \\
-	Q^A_\textrm{horn} &= \frac12 [Q^A-Q^B]_0 + \frac12[Q^A+Q^B]_\tau \\
-	U^A_\textrm{horn} &= \frac12 [U^A-U^B]_0 + \frac12[U^A+U^B]_\tau,
-\end{align}
-The other horn follows by symmetry.
-Here $[\ldots]_\tau$ means that
-the bracketed quantities were evaluated with a time delay $\tau$.
-For
-example $[I]_\tau \equiv \langle E_x(t)E_x(t+\tau)\rangle + \langle E_y(t)E_y(t+\tau)\rangle$.
-These $\tau$ terms represent the autocorrelation function of the incoming
-light, which is related to the spectrum of the light through a fourier transform.
-The zero-delay (DC) terms are for the most part irrelvant. Because they are not
-modulated by the mirror motion they change so slowly that they are indistinguishable
-from long-term correlated noise in the detectors. Nevertheless, they are included
-in the simulation.
-
-PIXIE has two detectors in each horn. They are fiducially sensitive to orthogonal
-polarizations of light, with one measuring power of $E_x$ (corresponding to a Stokes
-response of $\frac12(I+Q)$) and the other $E_y$ (corresponding to $\frac12(I-Q)$).
-This orthogonality is useful for rejecting systematic errors, but we allow an arbitrary
-Stokes response per detector in the simulator to be able to test the effect of any
-non-orthoginality.
-
-
-
-
-To simulate this, we need to be able to
+\subsection{A small error in the CMB beam treatment}
+The CMB, on the other hand, is modeled as a 4th order Taylor
+expansion in $\Delta T$, so in this case we should smooth each power of $\Delta T$
+individually. We currently \emph{do not do this}. Instead, we simply smooth
+the input $\Delta T$, as one usually does when simulating CMB maps. This reduces
+the accuracy of our Taylor expansion, and should be fixed in a future release.
+However, this is not as serious as one might fear.
 \begin{enumerate}
-	\item Generate a simulated sky
-	\item Compute the telescope pointing $\hat p$ and associated polarization rotation
-	matrix $R$ and relative path delay $\Delta t$ at each time $t$ for each barrel.
-	\item Evaluate the autocorrelation function for each component of the sky as
-	seen by each barrel for any $\hat p$ and $\Delta t$.
-	\item Find the detecor response using equation~\ref{eq:response}.
-	\item Integrate across subsample variation, and apply the time-frequency
-	response and detector noise.
+	\item The main reason why we go to 4th order is the $O(10^{-3})$ CMB dipole,
+		but the dipole is practically unaffected by the beam. The beam-relevant
+		scales are much lower, at $O(10^{-5})$. The first incorrect correction
+		term is the second order, which is down by another such factor, giving
+		a relative accuracy of $10^{-5}$ for T, E and B perturbations. This is
+		dwarfed by cosmic variance and noise for all PIXIE scales.
+	\item The same beam incorrect smoothing is used when evaluating the accuracy of the
+		recovered maps. These errors therefore cancel, and the difference maps and
+		error plots in the results section are identical to those we would have gotten
+		if this error had not been made.
 \end{enumerate}
 
-\section{Simulating the sky components}
+\subsection{Sidelobes and asymmetric beams}
+So far we've assumed that the beam is isotropic and position-independent,
+so it can be implemented by a one-time smoothing of the maps. A full
+implementation of general beam shapes would be very expensive, as it
+requires an integral over (part of) the sky for every sample generated.
+However, we can capture all the interesting effects of complicated beams
+by expanding them as a series of symmetric beams with different pointing
+offsets. For example, a slightly elliptical beam can be approximated as
+the sum of two slightly offset symmetric beams.
+We implement this by replacing every evaluation of the sky autocorrelation
+function with a sum over such evaluations for each beam component.
+Each such beam component is defined by specifying
+$\Delta\phi$ and $\Delta\theta$ (see eq.~(\ref{eq:barrel})),
+a beam profile, and a Muller matrix which encodes its
+intensity and leakage properties.
 
 \end{document}
