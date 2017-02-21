@@ -524,6 +524,45 @@ a beam profile, and a Muller matrix which encodes its
 intensity and leakage properties.
 
 \section{Results}
+{\color{red}When comparing to the noise level, we're doing an apples
+to oranges comparison. We're looking at the errors in a single pixel
+(for a single scan, even), but comparing it to the full-season noise
+for a steradian. Even non-random biases will average down when the signal
+that sources them fluctuates. If there are N fluctuations inside a steradian,
+then the error averaged across a steradian will be $\sqrt{N}$ times smaller.
+
+\begin{enumerate}
+	\item Make the plot with single-pixel noise. Pixie noise is 127 Jy/sr RMS in a \emph{1
+		square degree pixel} in P for double barrel observation when
+		integrated over a 15 GHz wide bin. Does that mean for each of Q and U,
+		or split between them?
+
+		This is basically what my plots already do. So my plots are mostly
+		correct. One difference is that the real scanning pattern hits
+		each pixel at much higher resolution in l than in b. These will
+		then be averaged together to form the final pixels. If the bias
+		is not the same for these slightly shifted pixels, then it will
+		average down. In T the bias looks like white noise, and so probably
+		would average down. In P the bias looks like the input maps, and
+		so would not average down. To be conservative I will assume that
+		none of them average down.
+
+		For jitter and similar quantities, things will average down by
+		the number of hits per pixel in 15 months of observing. Each
+		of our real-sized (slightly smaller than 1 square degree) pixels
+		will be hit 8.9 times in 15 months of observation, so jitter etc.
+		should be scaled down by $\sqrt{8.9} = 3.0$.
+
+		Anyway, these plots will only be valid for a single pixel in isolation.
+		They do not tell us how important various biases are for the full sky
+		for that one needs the next point.
+
+	\item Take the power spectrum of the map, and characterize the errors
+		at different multipoles. This is the most interesting result, but
+		also the hardest, as we need to mask the poles and galaxy.
+\end{enumerate}
+
+}
 
 \begin{figure}
 	\centering
@@ -557,7 +596,8 @@ intensity and leakage properties.
 		\includegraphics[width=0.48\textwidth,trim=8mm 0 0mm 0mm]{plots/tod000_stroke.png}
 	\end{tabular}
 	\caption{Noiseless simulated PIXIE time-ordered data for the Lx
-	detector on various time scales. \emph{Top left}: A whole great-circle
+	detector on various time scales in single (red) and double (green)
+	barrel obseriving mode. \emph{Top left}: A whole great-circle
 	scan of the sky, starting at ecliptic coordinates $l=0\degree$,
 	$b=0\degree$ and scanning in longitude. The two peaks are crossings
 	of the galactic plane. \emph{Top right}: Zoom on the first 10 minutes.
@@ -615,7 +655,7 @@ intensity and leakage properties.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.8\textwidth]{plots/spec_error_abs_v4_log_log_sub9.pdf}
+	\includegraphics[width=0.8\textwidth]{plots/error_std_sb_abs_log_log.pdf}
 	\caption{Simulator/mapmaker spectral bias test. Recovered T and Q spectra and
 	their errors for a noiseless simulation
 	with 9 Gaussian quadrature subsamples per sample, compared to the pixie
@@ -624,7 +664,7 @@ intensity and leakage properties.
 	The bias is $\sim 100$ times lower than the noise for $\nu<500$~GHz and
 	$\sim 5$ times lower than the noise at the worst point at 2 THz. At 200
 	Hz the bias is $\sim 10^{-10}$ of the signal in T and $\sim 10^{-6}$
-	of the signal in P.}
+	of the signal in P. These errors are independent of observing mode.}
 \end{figure}
 
 \begin{figure}
@@ -647,7 +687,11 @@ intensity and leakage properties.
 	times as large a bias. The red curve shows the error for a
 	monopole-only sky when using no sample window, demonstrating
 	that aside from subpixel biases the accuracy is close to double
-	precision float error.}
+	precision float error.
+	The relative Q error is high at low frequency because the signal itself
+	becomes very small there. The feature at 90 GHz is due to Q changing
+	sign there for this pixel.
+	}
 \end{figure}
 
 \end{document}
