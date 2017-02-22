@@ -700,10 +700,35 @@ then the error averaged across a steradian will be $\sqrt{N}$ times smaller.
 		\includegraphics[width=0.32\textwidth]{plots/shift1.pdf} &
 		\includegraphics[width=0.32\textwidth]{plots/shift2.pdf} &
 		\includegraphics[width=0.32\textwidth]{plots/shift3.pdf} \\
-		\includegraphics[width=0.32\textwidth]{plots/shift4.pdf} &
+		\includegraphics[width=0.32\textwidth]{plots/shift6.pdf} &
 		\includegraphics[width=0.32\textwidth]{plots/shift5.pdf} &
-		\includegraphics[width=0.32\textwidth]{plots/shift6.pdf}
+		\includegraphics[width=0.32\textwidth]{plots/shift4.pdf}
 	\end{tabular}
+	\caption{Orthogonalization of the scan, spin and stroke
+	motions. PIXIE scans in great circles on the sky, so the
+	signal is periodic during a scan. It also spins and strokes.
+	In isolation the signal would also be a periodic function
+	of the spin angle and mirror stroke position, but because
+	PIXIE scans while it spins, and spins
+	while the mirror strokes these dimensions get mixed and the
+	periodicity is lost on all but the scan timescale.
+	\emph{A}: Illustration of the mixing of the stroke (color),
+	spin (x-axis) and scan (y-axis) dimensions in the PIXIE scanning
+	pattern. \emph{B}: The subset of points with the same stroke
+	position and spin angle from periodic functions of the scan
+	angle. We use fourier interpolation to undo the scanning
+	motion during each spin. \emph{C}: Spin and stroke are still
+	mixed. \emph{D}: We fourier-interpolate between points with
+	the same stroke position within a spin to undo the spin
+	modtion during each stroke. \emph{E}: The scan, spin and stroke
+	are now unmixed. The resulting timestream simulates what we would
+	see if PIXIE stood still while the mirror strokes, then
+	instantanously rotates to a new spin angle, strokes again, etc.
+	and then instantanously moves to a new scan angle when the spin is done.
+	\emph{F}: The signal is spin-0 (I) or spin-2 (Q,U), so we can
+	shorten the interpolation distance and increse the pixel size
+	by mapping the $180\degree-360\degree$ interval to the $0\degree-
+	180\degree$ interval in spin angle.}
 \end{figure}
 
 \end{document}
