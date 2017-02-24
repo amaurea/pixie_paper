@@ -696,6 +696,55 @@ then the error averaged across a steradian will be $\sqrt{N}$ times smaller.
 
 \begin{figure}
 	\centering
+	\hspace*{-5mm}\begin{tabular}{ccc}
+		\includegraphics[height=57mm,clip,trim=0 0 5mm 0]{plots/jit_wave_noise_realization.pdf} &
+		\includegraphics[height=60mm,clip,trim=0 0 6mm 0]{plots/jitter_abs_log_log.pdf}
+	\end{tabular}
+	\caption{The effect of jitter in the mirror position. \emph{Left}:
+	We added noise consisting of a sum of 100 sine waves with random
+	periods logarithmically distributed in the range 0.25 Hz to 1000 Hz
+	with power proportional to $f^{-1}$ and a combined RMS of $1\mu
+	m\sqrt{s}$. This is a rough approximation of noise that is damped
+	on long timescales by the mirror control system and on short timescales
+	by the inertia of the mirror. An example of such a noise realization
+	is shown in red,
+	and compared to the mirror speed divided by 5000. \emph{Right}:
+	The average single-pixel spectrum error caused by this jitter
+	compared to the signal, PIXIE noise and simulator/mapmaker bias.
+	A mirror jitter of the form and magnitude simulated here would be
+	by far the largest of the systematic effects investigated in this
+	paper, and approaches (Q) or even exceeds (T) the PIXIE detector
+	noise.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\hspace*{-5mm}\begin{tabular}{cc}
+		T & Q \\
+		\includegraphics[height=80mm,clip,trim=0 0 6mm 0]{plots/spin_offset_T_abs_log_log.pdf} &
+		\includegraphics[height=80mm,clip,trim=27mm 0 0 0]{plots/spin_offset_Q_abs_log_log.pdf}
+	\end{tabular}
+	\caption{The interplay between having the barrel pointing offset
+	from the rotation axis and the spin of the fourier shift in the
+	mapmaking algorithm for T (\emph{left}) and Q (\emph{right}).
+	Normally the spin-2 shift is much more accurate than the spin-1
+	shift, as can be seen by computing the green curve with its
+	dashed counterpart (see main text for discussion). This
+	is also the case when considering only the signal from a single
+	detector (blue). Adding a 1 arcsecond barrel offset slightly
+	increases the error consistent with a $\sim 1"$ smoothing
+	of the map (orange). However, if one only looks at a single
+	detector the error increase is dramatic (magenta) for
+	the spin-2 shift. This is because the spin-2 shift assumes
+	that the signal is the same after a $180\degree$ spin rotation,
+	but with a barrel offset this is not the case. To a lesser extent
+	a barrel offset also turns the local quadrupole into $T\leftrightarrow P$
+	leakage, but this term has the opposite sign for oppositely aligned
+	detectors, and hence cancels.}
+\end{figure}
+
+\begin{figure}
+	\centering
 	\begin{tabular}{ccc}
 		\includegraphics[width=0.32\textwidth]{plots/shift1.pdf} &
 		\includegraphics[width=0.32\textwidth]{plots/shift2.pdf} &
