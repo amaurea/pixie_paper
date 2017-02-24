@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{amsmath,gensymb,color,graphicx,array}
 \usepackage[margin=22mm]{geometry}
+\usepackage{listings}
 \newcommand{\code}[1]{\texttt{#1}}
 \renewcommand{\Re}{\operatorname{Re}}
 \renewcommand{\Im}{\operatorname{Im}}
@@ -12,6 +13,26 @@
 \newcommand{\U}{\tilde U}
 \newcommand{\V}{\tilde V}
 \newcommand{\J}{{\tilde E}}
+
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{9} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{9}  % for normal
+% Defining colors
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\lstset{
+	language=Python,
+	backgroundcolor=\color{white}, %%%%%%%
+	basicstyle=\ttm,
+	keywordstyle=\ttb\color{deepblue},
+	deletekeywords={map},
+	emphstyle=\ttb\color{deepred},
+	stringstyle=\color{deepgreen},
+	commentstyle=\color{red},  %%%%%%%%
+	frame=tb,
+	tabsize=4,
+	showstringspaces=false
+}
 
 \begin{document}
 
@@ -563,6 +584,63 @@ then the error averaged across a steradian will be $\sqrt{N}$ times smaller.
 \end{enumerate}
 
 }
+
+\subsection{Simulator pseudo-python}
+\begin{lstlisting}
+for each barrel, beam:
+	skies[barrel.sky, beam] = prepare_sky(barrel.sky, beam)
+# Time-ordered data is generated and output in units of scans
+for each scan:
+	tod = zeros([ndet,nsamp*nsub])
+	for each subsample in scan:
+		elements = calc_orbital_parameters(subsample)
+		for each detector:
+			for each beam seen through each barrel by detector:
+				p   = calc_pointing(elements, beam)
+				sky = skies[barrel.sky, beam]
+				# Compute the autocorrelation function at both
+				# dt=0 (DC) and dt=p.delay (offset)
+				sky_signal   = calc_sky_autocorr(sky, p)
+				# Compute detector response to DC and offset sky Stokes parameters
+				det_response = calc_det_response(det, barrel, p)
+				tod[det,subsample] = calc_det_signal(sky_signal, det_response)
+	# This uses Gaussian quadrature to integrate the subsamples
+	# in each sample (so the subsamples are not equi-spaced)
+	tod = downsample(tod, nsub)
+	output(tod)
+\end{lstlisting}
+
+\subsection{Mapmaker pseudo-python}
+\begin{lstlisting}
+map  = zeros([nfreq,{T,Q,U},nlat,nlon])
+hits = zeros([nlat,nlon])
+for each scan:
+	d = unapply_tod_filter(scan.tod)
+	d = unapply_sample_window(d)
+	# Unapply scan drift during spin
+	if spin == 1:
+		d = d.reshape(ndet,scanspins,spinstrokes*strokesamps)
+		d = fourier_shift(d, range(d.shape[-1])/d.shape[-1], axis=1)
+	else: # spin-2 - could be modified to double resolution
+		d = d.reshape(ndet,scanspins*2,spinstrokes*strokesamps/2)
+		dhalf = fourier_shift(d, range(d.shape[-1])/d.shape[-1], axis=1)
+		d[:,0::2], d[:,1::2] = dhalf, dhalf
+	# Unapply scan and spin drift during stroke
+	d = d.reshape(ndet,scanspins*spinstrokes,strokesamps)
+	d = fourier_shift(d, range(d.shape[-1])/d.shape[-1], axis=1)
+	# Decompose spin modulation into T (spin-0 part) and Q,U (spin-2 part)
+	d = d.reshape(ndet,scanspins,spinstrokes,strokesamps)
+	d = fft(d, axis=2)
+	# Transform from autocorrelation into spectrum
+	d = [d[:,:,0],d[:,:,2].real*2,d[:,:,2].imag*2]
+	d = fft(d, axis=3)*2/strokesamps/dfreq
+	# Take into account the detector polarization orientation and gain
+	d = unapply_detector_response(d)
+	add_to_sky(map,  scan.lon, d)
+	add_to_sky(hits, scan.lon, 1)
+map /= hits
+output(map)
+\end{lstlisting}
 
 \begin{figure}
 	\centering
