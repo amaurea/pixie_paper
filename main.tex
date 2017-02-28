@@ -610,9 +610,52 @@ for each scan:
 	output(tod)
 \end{lstlisting}
 
+\section{PIXIE map-making}
+PIXIE's observing strategy is designed to make mapmaking
+fast and accurate, and our mapmaker assumes the following:
+\begin{enumerate}
+	\item PIXIE scans in great circles (rings) that pass through the ecliptic poles,
+		and both barrels are perfectly aligned. This means that
+		the scanning motion does not induce polarization rotation in ecliptic
+		coordinates, and that all samples in a ring will have constant ecliptic
+		longitude, up to pole wrapping.
+	\item The sampling rate and telescope scan, spin and stroke speed are constant;
+		and there is an integer number of samples per stroke, strokes per spin and spins
+		per scan. These make it easy to use fast fourier transforms
+		in the mapmaking.
+	\item The calibrator is constant, and its effect can taken into account by adding
+		back the calibrator spectrum (the CMB monopole) in map space. Hence the
+		mapmaker itself can ignore it, and set $\vec s_\textrm{sky,B}=0$ in
+		single barrel mode.
+\end{enumerate}
+In additional, the current version makes these convenience assumptions:
+\begin{enumerate}
+	\item Any DC component in the TOD is ignored, and treated just like a slowly changing
+		noise component.
+	\item The noise is white, and all detectors and samples are given equal weight.
+\end{enumerate}
+
+With these assumptions, equation~(\ref{eq:response}) simplifies to
+\begin{align}
+	\vec s_\textrm{det}(t) &=
+		\frac14\begin{bmatrix}
+			\vec e_I+\vec e_Q \\
+			\vec e_I-\vec e_Q \\
+			-\vec e_I+\vec e_Q \\
+			-\vec e_I-\vec e_Q
+		\end{bmatrix} R_\textrm{spin}(t)\cdot\vec s_\textrm{sky}(\hat p_t,\Delta t)
+\end{align}
+
+Data model:
+\begin{align}
+	\textrm{tod}(d,i) &= R_\textrm{pol}(4 \pi (t-t_0)/T_\textrm{spin})
+		\vec s_\textrm{auto}(l_0,b_0 + 2\pi (t-t_0) / T_\textrm{scan},
+		\Delta t_0 + A_\textrm{delay} \textrm{triangle}((t-t_0)/T_\textrm{stroke})
+\end{align}
+
 \subsection{Mapmaker pseudo-python}
 \begin{lstlisting}
-map  = zeros([nfreq,{T,Q,U},nlat,nlon])
+map  = zeros([nfreq,{I,Q,U},nlat,nlon])
 hits = zeros([nlat,nlon])
 for each scan:
 	d = unapply_tod_filter(scan.tod)
@@ -628,7 +671,7 @@ for each scan:
 	# Unapply scan and spin drift during stroke
 	d = d.reshape(ndet,scanspins*spinstrokes,strokesamps)
 	d = fourier_shift(d, range(d.shape[-1])/d.shape[-1], axis=1)
-	# Decompose spin modulation into T (spin-0 part) and Q,U (spin-2 part)
+	# Decompose spin modulation into I (spin-0 part) and Q,U (spin-2 part)
 	d = d.reshape(ndet,scanspins,spinstrokes,strokesamps)
 	d = fft(d, axis=2)
 	# Transform from autocorrelation into spectrum
@@ -645,7 +688,7 @@ output(map)
 \begin{figure}
 	\centering
 	\hspace*{-15mm}\begin{tabular}{rm{56mm}m{54.4mm}m{56mm}}
-		& \hspace{32mm}T & \hspace{32mm}Q & \hspace{32mm}U \\
+		& \hspace{32mm}I & \hspace{32mm}Q & \hspace{32mm}U \\
 		CMB &
 		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_1_0.png} &
 		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_1_1.png} &
@@ -661,7 +704,7 @@ output(map)
 	\end{tabular}
 	\caption{The input beam-smoothed sky model evaluated at 58 GHz in the CAR
 	projection in ecliptic coordinates. The color range is
-	$\pm 400$ kJy/sr in T and $\pm 200$ Jy/sr in P, except for dust T where it is
+	$\pm 400$ kJy/sr in I and $\pm 200$ Jy/sr in P, except for dust I where it is
 	$\pm 5$ kJy/sr. The mean has been subtracted in each map for plotting purposes.}
 \end{figure}
 
@@ -694,22 +737,22 @@ output(map)
 \begin{figure}
 	\centering
 	\hspace*{-15mm}\begin{tabular}{rm{56mm}m{54.4mm}m{56mm}}
-		& \hspace{32mm}T & \hspace{32mm}Q & \hspace{32mm}U \\
-		Input &
-		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_0_0.png} &
-		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/sim_freqmap_58GHz_0_1.png} &
-		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/sim_freqmap_58GHz_0_2.png} \\
+		& \hspace{32mm}I & \hspace{32mm}Q & \hspace{32mm}U \\
+		Output &
+		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/std_sb_map_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/std_sb_map_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/std_sb_map_2.png} \\
 		Error &
-		\includegraphics[height=29.7mm,clip,trim=0 0 7.5mm 0]{plots/map11_sub9_diff_58GHz_scaled_0.png} &
-		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 7.5mm 0]{plots/map11_sub9_diff_58GHz_scaled_1.png} &
-		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 0 0]{plots/map11_sub9_diff_58GHz_scaled_2.png}
+		\includegraphics[height=29.7mm,clip,trim=0 0 7.5mm 0]{plots/std_sb_diff_0.png} &
+		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 7.5mm 0]{plots/std_sb_diff_1.png} &
+		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 0 0]{plots/std_sb_diff_2.png}
 	\end{tabular}
 	\caption{Simulator/mapmaker spatial bias test.
-		\emph{Top row}: The beam-smoothed simulated input map at 58 GHz.
-			The color range is $\pm 400$ kJy/sr for T and $\pm 200$ Jy/sr for P.
+		\emph{Top row}: The beam-smoothed output map at 58 GHz.
+			The color range is $\pm 400$ kJy/sr for I and $\pm 200$ Jy/sr for P.
 		\emph{Bottom row}: Difference between the mapmaking output maps and
 			input maps at the same frequency for a noise-less simulation.
-			The color range is $\pm 1.7$ Jy/sr for T and $\pm 2.5$ mJy/sr for P.
+			The color range is $\pm 500$ mJy/sr for I and $\pm 5$ mJy/sr for P.
 			These represent the bias of the simulator-mapmaker combination.}
 \end{figure}
 
@@ -734,21 +777,21 @@ output(map)
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{plots/error_std_sb_abs_log_log.pdf}
-	\caption{Simulator/mapmaker spectral bias test. Recovered T and Q spectra and
+	\caption{Simulator/mapmaker spectral bias test. Recovered I and Q spectra and
 	their errors for a noiseless simulation
 	with 9 Gaussian quadrature subsamples per sample, compared to the pixie
 	noise level. This is all for a single pixel at $l=0\degree$,$b=0\degree$.
 	The U spectrum is similar to the Q one, but was left out to avoid clutter.
 	The bias is $\sim 100$ times lower than the noise for $\nu<500$~GHz and
 	$\sim 5$ times lower than the noise at the worst point at 2 THz. At 200
-	Hz the bias is $\sim 10^{-10}$ of the signal in T and $\sim 10^{-6}$
+	Hz the bias is $\sim 10^{-10}$ of the signal in I and $\sim 10^{-6}$
 	of the signal in P. These errors are independent of observing mode.}
 \end{figure}
 
 \begin{figure}
 	\centering
 	\hspace*{-2mm}\begin{tabular}{cc}
-		T & Q \\
+		I & Q \\
 		\includegraphics[height=70mm,clip,trim=0 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_T.pdf} &
 		\includegraphics[height=70mm,clip,trim=30mm 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_Q.pdf}
 	\end{tabular}
@@ -791,20 +834,20 @@ output(map)
 	compared to the signal, PIXIE noise and simulator/mapmaker bias.
 	A mirror jitter of the form and magnitude simulated here would be
 	by far the largest of the systematic effects investigated in this
-	paper, and approaches (Q) or even exceeds (T) the PIXIE detector
+	paper, and approaches (Q) or even exceeds (I) the PIXIE detector
 	noise.}
 \end{figure}
 
 \begin{figure}
 	\centering
 	\hspace*{-5mm}\begin{tabular}{cc}
-		T & Q \\
+		I & Q \\
 		\includegraphics[height=80mm,clip,trim=0 0 6mm 0]{plots/spin_offset_T_abs_log_log.pdf} &
 		\includegraphics[height=80mm,clip,trim=27mm 0 0 0]{plots/spin_offset_Q_abs_log_log.pdf}
 	\end{tabular}
 	\caption{The interplay between having the barrel pointing offset
 	from the rotation axis and the spin of the fourier shift in the
-	mapmaking algorithm for T (\emph{left}) and Q (\emph{right}).
+	mapmaking algorithm for I (\emph{left}) and Q (\emph{right}).
 	Normally the spin-2 shift is much more accurate than the spin-1
 	shift, as can be seen by computing the green curve with its
 	dashed counterpart (see main text for discussion). This
@@ -816,7 +859,7 @@ output(map)
 	the spin-2 shift. This is because the spin-2 shift assumes
 	that the signal is the same after a $180\degree$ spin rotation,
 	but with a barrel offset this is not the case. To a lesser extent
-	a barrel offset also turns the local quadrupole into $T\leftrightarrow P$
+	a barrel offset also turns the local quadrupole into $I\leftrightarrow P$
 	leakage, but this term has the opposite sign for oppositely aligned
 	detectors, and hence cancels.}
 \end{figure}
@@ -856,6 +899,35 @@ output(map)
 	shorten the interpolation distance and increse the pixel size
 	by mapping the $180\degree-360\degree$ interval to the $0\degree-
 	180\degree$ interval in spin angle.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\hspace*{-7mm}\begin{tabular}{m{75mm}m{75mm}}
+		\vspace*{2.0mm}\includegraphics[width=79mm]{plots/noise_oof_example.pdf} &
+			\includegraphics[width=85mm]{plots/noise_abs_log_log_wide.pdf}
+	\end{tabular}
+	\hspace*{-5mm}\begin{tabular}{m{56mm}m{54.4mm}m{56mm}}
+		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/noise_oof_sb_map_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/noise_oof_sb_map_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/noise_oof_sb_map_2.png} \\
+		\hspace{32mm}I & \hspace{32mm}Q & \hspace{32mm}U
+	\end{tabular}
+	\caption{\emph{Top left}: Example noise realization with 1/f-noise with
+		$f_\textrm{knee} = 0.1$ Hz, $\alpha=-3$ and $\sigma = 83 \sqrt{s}$
+		fW/$\textrm{m}^2$/sr per detector. This $f_\textrm{knee}$ is
+		several orders of magntiude larger PIXIE's expected value,
+		resulting in strongly non-white noise on $>10$ s time scales.
+		\emph{Top right}: The resulting noise RMS is $92 Jy/sr$ per 15 GHz
+		bin per ${1\degree}^2$ pixel in I and $128 Jy/sr$ in Q and U. These
+		numbers take into account that our actual bins are slightly smaller than
+		15 GHz, and that our pixels are slightly smaller than ${1\degree}^2$.
+		Despite the high $f_\textrm{knee}$, the resulting spectrum noise is
+		indistinguishable from white. The spectrum (and map) has been
+		rescaled to correspond to 15 months of data. \emph{Bottom}: Map
+		noise resulting from single-barrel mapmaking with this noise sim.
+		The color scale is $\pm 500$ Jy/sr. Like in the spectrum, the map noise
+		is practically white.}
 \end{figure}
 
 \end{document}
