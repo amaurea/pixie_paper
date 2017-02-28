@@ -618,11 +618,12 @@ fast and accurate, and our mapmaker assumes the following:
 		and both barrels are perfectly aligned. This means that
 		the scanning motion does not induce polarization rotation in ecliptic
 		coordinates, and that all samples in a ring will have constant ecliptic
-		longitude, up to pole wrapping.
+		longitude, up to pole wrapping. 
 	\item The sampling rate and telescope scan, spin and stroke speed are constant;
 		and there is an integer number of samples per stroke, strokes per spin and spins
 		per scan. These make it easy to use fast fourier transforms
-		in the mapmaking.
+		in the mapmaking, and together with \#1 it implies that the natural
+		projection for PIXIE maps is plate carée.
 	\item The calibrator is constant, and its effect can taken into account by adding
 		back the calibrator spectrum (the CMB monopole) in map space. Hence the
 		mapmaker itself can ignore it, and set $\vec s_\textrm{sky,B}=0$ in
@@ -638,13 +639,12 @@ In additional, the current version makes these convenience assumptions:
 With these assumptions, equation~(\ref{eq:response}) simplifies to
 \begin{align}
 	\vec s_\textrm{det}(t) &=
-		\frac14\begin{bmatrix}
-			\vec e_I+\vec e_Q \\
-			\vec e_I-\vec e_Q \\
-			-\vec e_I+\vec e_Q \\
-			-\vec e_I-\vec e_Q
-		\end{bmatrix} R_\textrm{spin}(t)\cdot\vec s_\textrm{sky}(\hat p_t,\Delta t)
+		G \cdot R_\textrm{spin}(t)\cdot\vec s_\textrm{sky}(\hat p_t,\Delta t)
 \end{align}
+where $G$ is the detector-barrel response matrix
+$G = [\vec e_I+\vec e_Q,\vec e_I-\vec e_Q,-\vec e_I+\vec e_Q,
+-\vec e_I-\vec e_Q]$. {\color{red}Expand to IQU, insert samples}
+
 
 Data model:
 \begin{align}
@@ -928,6 +928,10 @@ output(map)
 		noise resulting from single-barrel mapmaking with this noise sim.
 		The color scale is $\pm 500$ Jy/sr. Like in the spectrum, the map noise
 		is practically white.}
+\end{figure}
+
+\begin{figure}
+
 \end{figure}
 
 \end{document}
