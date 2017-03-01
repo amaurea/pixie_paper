@@ -931,7 +931,85 @@ output(map)
 \end{figure}
 
 \begin{figure}
+	\centering
+	\hspace*{-5mm}\begin{tabular}{rm{54.4mm}m{56mm}}
+		&
+		%\hspace{32mm}I &
+		\hspace{32mm}Q &
+		\hspace{32mm}U \\
+		Lx &
+		%\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/ellip_mismatch_sky_sb_det0_map_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/ellip_mismatch_sky_sb_det0_map_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/ellip_mismatch_sky_sb_det0_map_2.png} \\
+		Lx+Ly &
+		%\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/ellip_mismatch_sky_sb_det01_map_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/ellip_mismatch_sky_sb_det01_map_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/ellip_mismatch_sky_sb_det01_map_2.png} \\
+		All &
+		%\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/ellip_mismatch_sky_sb_tot_map_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/ellip_mismatch_sky_sb_tot_map_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/ellip_mismatch_sky_sb_tot_map_2.png}
+	\end{tabular}
+	\caption{Polariziation leakage from elliptical beams, and how it's cancelled in PIXIE.
+	We simulated sky observations with an elliptical beam with an elongation of
+	0.95 for Lx and Rx detectors
+	and 1.05 for Ly and Ry detectors. This 10\% beam mismatch between detectors in the
+	same horn is not expected, but is included to show the multiple ways in which
+	leakage is suppressed. \emph{Top}: Q and U maps based on only the Lx detector.
+	The maps are dominated by O(1) leakage of small-scale I. \emph{Middle}:
+	When coadding the Lx and Ly detectors the leakage is greatly reduced. If
+	the two detectors have the same beam (as would be expected in the real instrument),
+	then this cancellation would be perfect. In our simulation there is a 10\% mismatch,
+	so the leakage is only suppressed by 90\%. \emph{Bottom}: Map based on all
+	four detectors (Lx+Ly+Rx+Ry). Because we assumed the same beams for the detectors
+	in the left and right horns, the leakage cancels. Leakage would only survive if
+	both the detectors in a horn are mismatched \emph{and} the horns themselves are
+	mismatched.}
+\end{figure}
 
+\begin{figure}
+	\centering
+	\hspace*{-5mm}\begin{tabular}{rm{11mm}m{11mm}m{11mm}m{11mm}m{11mm}m{11mm}}
+		&
+		\hspace*{5mm}Lx &
+		\hspace*{5mm}Ly &
+		\hspace*{2mm}Lx+Ly &
+		\hspace*{2mm}Rx+Ry &
+		\hspace*{5mm}All &
+		\hspace*{3mm}Circ \\
+		I &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_0.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det1_crop_0.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det01_crop_0.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det23_crop_0.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_0.png} &
+		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_0.png} \\
+		Q &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_1.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det1_crop_1.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det01_crop_1.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det23_crop_1.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_1.png} &
+		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_1.png} \\
+		U &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_2.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det1_crop_2.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det01_crop_2.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det23_crop_2.png} &
+		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_2.png} &
+		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_2.png}
+	\end{tabular}
+	\caption{Simulation of a highly elliptical beam with an elongation of 1.
+	The PIXIE scanning pattern circularizes the beam efficiently, at the cost
+	of a slight increase in beam size compared to the non-elliptical case.
+	Beam ellipticity also introduces polarization leakage due to the spin-2
+	nature of an elliptical beam, but this is doubly suppressed in PIXIE.
+	First, it's cancelled when combining detectors in each horn unless
+	the two detectors have different beams, and secondly, it's cancelled
+	when combining the signal from the two horns unless the two horns
+	have different beams. In this simulation we used an unrealistic
+	10\% mismatch between x- and y-oriented detectors in each horn, making
+	the first cancelation only 90\% efficient.}
 \end{figure}
 
 \end{document}
