@@ -2,6 +2,7 @@
 \usepackage{amsmath,gensymb,color,graphicx,array}
 \usepackage[margin=22mm]{geometry}
 \usepackage{listings}
+\usepackage[utf8]{inputenc}
 \newcommand{\code}[1]{\texttt{#1}}
 \renewcommand{\Re}{\operatorname{Re}}
 \renewcommand{\Im}{\operatorname{Im}}
@@ -91,6 +92,22 @@ the left (L) and right (R) feedhorns.
 		&= \big[\J^B_x\cos(\omega\Delta t/2) + i\J^A_y\sin(\omega\Delta t/2)\big]\vec e_x
 		+  \big[\J^B_y\cos(\omega\Delta t/2) - i\J^A_x\sin(\omega\Delta t/2)\big]\vec e_y
 \end{align}
+
+\begin{figure}
+	\centering
+	\includegraphics[angle=90,width=170mm]{plots/optics_ex1.pdf}
+	\caption{PIXIE optics example. Monochromatic pure vertical polarization (red) enters barrel
+	A at the left side of the figure. It passes through the vertical polarizer A
+	unmolested, but is split into two different linear combinations of vertical
+	and horizontal (blue) polarization at the diagonal polarizer B. It then encounters
+	the moving mirror, which in this example slightly retards the top optial path.
+	The rays are combined in the next diagonal polarizer C, but due to the
+	phase delay the horizontal polarization does not fully cancel. The vertical
+	polarization is correspondingly lower. The final vertical polarizer (D)
+	sends the vertical/horizontal polarization to horn L/R respectively.
+	If the mirror displacement were zero, all radiation entering barrel A/B
+	would end up in horn L/R.}
+\end{figure}
 
 \subsection{Stokes parameters}
 \label{s:stokes}
@@ -277,6 +294,23 @@ varying somewhat by observing mode in the real experiment, and with
 $\textrm{triangle}(x)$ being the triangle wave with period 1, mean 0 and a zero
 crossing at $x=0$.
 
+\begin{figure}
+	\centering
+	\begin{tabular}{m{90mm}m{70mm}}
+		\includegraphics[width=90mm]{plots/scan_orbit.pdf} &
+		\includegraphics[width=70mm]{plots/scan_car.pdf}
+	\end{tabular}
+	\caption{\emph{Left}: PIXIE would be located at the Sun-Earth L2 point,
+	and would scan in great circles while pointing $90\degree$ away from the
+	Sun, adjusting its orientation stepwise between each scan. This results
+	in the whole sky being covered every 6 months. \emph{Right}: PIXIE's
+	scanning pattern is particularly simple in ecliptic (extended) plate carrée (CAR)
+	coordinates, where each scan moves at constant pixel velocity purely along the
+	latidude axis. 3 example scans separated by 7.6 days are as black lines.
+	The extended CAR coordinates here cover two mirror images of the full sky
+	in order to show full scans without breaks.}
+\end{figure}
+
 To allow PIXIE mapmaking to use fast fourier transform methods, the stroke, spin
 and scan periods will be synchronized such that there is an integer number of
 strokes in a spin, and an integer number of spins in a scan. We will use the
@@ -324,7 +358,7 @@ $\hat p = (p_x,p_y,p_z)$ is the pointing vector and $\gamma$ is the
 polarization basis rotation, and corresponds to a Stokes rotation
 matrix
 \begin{align}
-	R &= \begin{bmatrix}
+	R_\textrm{stok} &= \begin{bmatrix}
 		1 & 0 & 0 & 0\\
 		0 & \cos(2\gamma) & -\sin(2\gamma) & 0\\
 		0 & \sin(2\gamma) & \cos(2\gamma) & 0 \\
@@ -572,46 +606,147 @@ for each scan:
 \end{lstlisting}
 
 \section{PIXIE map-making}
+\subsection{Assumptions}
 PIXIE's observing strategy is designed to make mapmaking
-fast and accurate, and our mapmaker assumes the following:
-\begin{enumerate}
-	\item PIXIE scans in great circles (rings) that pass through the ecliptic poles,
-		and both barrels are perfectly aligned. This means that
-		the scanning motion does not induce polarization rotation in ecliptic
-		coordinates, and that all samples in a ring will have constant ecliptic
-		longitude, up to pole wrapping. 
-	\item The sampling rate and telescope scan, spin and stroke speed are constant;
-		and there is an integer number of samples per stroke, strokes per spin and spins
-		per scan. These make it easy to use fast fourier transforms
-		in the mapmaking, and together with \#1 it implies that the natural
-		projection for PIXIE maps is plate carée.
-	\item The calibrator is constant, and its effect can taken into account by adding
-		back the calibrator spectrum (the CMB monopole) in map space. Hence the
-		mapmaker itself can ignore it, and set $\vec s_\textrm{sky,B}=0$ in
-		single barrel mode.
-\end{enumerate}
-In additional, the current version makes these convenience assumptions:
-\begin{enumerate}
-	\item Any DC component in the TOD is ignored, and treated just like a slowly changing
-		noise component.
-	\item The noise is white, and all detectors and samples are given equal weight.
-\end{enumerate}
+fast and accurate. To be as general as possible we avoided depending
+on these features in the TOD simulator, but we make use of them
+in the mapmaker.
 
-With these assumptions, equation~(\ref{eq:response}) simplifies to
+\paragraph{No DC signal}
+The unmodulated component (DC) of the signal changes on minute timescales,
+which will not be recoverable due to correlated noise and the TOD highpass
+filter. We ignore this component in the mapmaker, and simply treat it as
+a part of the noise.
+
+\paragraph{Single sky}
+We assume that the calibrator in single barrel mode is constant and
+unpolarized. That means that its effect can be taken into account
+simply by adding back the calibrator spectrum in map space, and
+the mapmaker itself can ignore it, and set $\vec s_\textrm{sky,B}=0$.
+
+In double barrel mode we assume that the two barrels see the same signal,
+and that the V and U antisymmetric leakage terms can be ignored.
+Since I can't be recovered in double barrel mode, the two barrels are
+equivalent to a single barrel with no I but twice the polarization signal,
+so we can again set $\vec s_\textrm{sky,B}=0$ as long as we multiply the
+detector response by 2. With this, equation~(\ref{eq:response}) simplifies
+to
+
 \begin{align}
 	\vec s_\textrm{det}(t) &=
 		G \cdot R_\textrm{spin}(t)\cdot\vec s_\textrm{sky}(\hat p_t,\Delta t)
 \end{align}
 where $G$ is the detector-barrel response matrix
-$G = [\vec e_I+\vec e_Q,\vec e_I-\vec e_Q,-\vec e_I+\vec e_Q,
--\vec e_I-\vec e_Q]$. {\color{red}Expand to IQU, insert samples}
+$G = \frac{g}{4}[\vec e_I+\vec e_Q,\vec e_I-\vec e_Q,-\vec e_I+\vec e_Q,
+-\vec e_I-\vec e_Q]$ and $g = 1$ in single barrel mode and $g = 2$ in
+double barrel mode.
 
+\paragraph{Regular scanning pattern}
+PIXIE scans in great circles (rings) that pass through the ecliptic poles,
+and both barrels are perfectly aligned. This means that the scanning motion
+does not induce polarization rotation in ecliptic coordinates, and that all
+samples in a ring will have constant ecliptic longitude, up to pole wrapping.
+The sampling rate and telescope scan, spin and stroke speed are constant;
+and there is an integer number of samples per stroke, strokes per spin and spins
+per scan.
 
-Data model:
 \begin{align}
-	\textrm{tod}(d,i) &= R_\textrm{pol}(4 \pi (t-t_0)/T_\textrm{spin})
-		\vec s_\textrm{auto}(l_0,b_0 + 2\pi (t-t_0) / T_\textrm{scan},
-		\Delta t_0 + A_\textrm{delay} \textrm{triangle}((t-t_0)/T_\textrm{stroke})
+	\vec s_\textrm{det}^\textrm{ring}(i) &= G \cdot
+		R_\textrm{stok}\Big(\frac{4\pi i}{N_\textrm{spin}}\Big) \cdot
+		\vec s_\textrm{sky}\Big(\Big[l=l_\textrm{ring},b=\frac{2\pi i}{N_\textrm{scan}}\Big],
+		A_\textrm{delay}\textrm{triangle}\Big(\frac{i}{N_\textrm{stroke}}\Big)\Big)
+\end{align}
+where $N_\textrm{scan} = 5\,898\,240$,$N_\textrm{spin} = 15\,360$ and
+$N_\textrm{stroke} = 1\,920$ are the number
+of samples per scan, spin and stroke respectively.
+
+\paragraph{Simple noise}
+For simplicity, we will also assume that the detectors have independent white
+noise of equal amplitude. Neither of these are necessary, and can be easily
+relaxed in the future.
+
+\subsection{Orthogonalization}
+It would have been very convenient if the stroke, spin and scan motions were
+orthogonal, so that the telescope didn't spin during a stroke and didn't scan
+during a spin. That would allow us to demodulate each of them independently.
+Figure~\ref{fig:shift} illustrates the situation. In the 3-dimensional
+space of latitude, spin angle and mirror position (corresponding to the
+horizontal, vertical and color axis in the figure), the scanning pattern
+traces out a slightly skewed grid (A) instead of the orthogonal grid
+that would be convenient (E). But as long as our signal is well-sampled
+in all directions in the grid we can use the samples we have to
+interpolate to orthogonal grid we wish we had.
+
+\begin{figure}
+	\centering
+	\begin{tabular}{ccc}
+		\includegraphics[width=0.32\textwidth]{plots/shift1.pdf} &
+		\includegraphics[width=0.32\textwidth]{plots/shift2.pdf} &
+		\includegraphics[width=0.32\textwidth]{plots/shift3.pdf} \\
+		\includegraphics[width=0.32\textwidth]{plots/shift6.pdf} &
+		\includegraphics[width=0.32\textwidth]{plots/shift5.pdf} &
+		\includegraphics[width=0.32\textwidth]{plots/shift4.pdf}
+	\end{tabular}
+	\caption{Orthogonalization of the scan, spin and stroke
+	motions. PIXIE scans in great circles on the sky, so the
+	signal is periodic during a scan. It also spins and strokes.
+	In isolation the signal would also be a periodic function
+	of the spin angle and mirror stroke position, but because
+	PIXIE scans while it spins, and spins
+	while the mirror strokes these dimensions get mixed and the
+	periodicity is lost on all but the scan timescale.
+	\emph{A}: Illustration of the mixing of the stroke (color),
+	spin (x-axis) and scan (y-axis) dimensions in the PIXIE scanning
+	pattern. \emph{B}: The subset of points with the same stroke
+	position and spin angle from periodic functions of the scan
+	angle. We use fourier interpolation to undo the scanning
+	motion during each spin. \emph{C}: Spin and stroke are still
+	mixed. \emph{D}: We fourier-interpolate between points with
+	the same stroke position within a spin to undo the spin
+	modtion during each stroke. \emph{E}: The scan, spin and stroke
+	are now unmixed. The resulting timestream simulates what we would
+	see if PIXIE stood still while the mirror strokes, then
+	instantanously rotates to a new spin angle, strokes again, etc.
+	and then instantanously moves to a new scan angle when the spin is done.
+	\emph{F}: The signal is spin-0 (I) or spin-2 (Q,U), so we can
+	shorten the interpolation distance and increse the pixel size
+	by mapping the $180\degree-360\degree$ interval to the $0\degree-
+	180\degree$ interval in spin angle.}
+	\label{fig:shift}
+\end{figure}
+
+We start by undoing the effect of the scan motion during each scan (and stroke)
+by splitting our samples into groups with the same spin angle and mirror position.
+Because the shorter time-scale parameters are constant within each group, they see
+a signal that changes smoothly as the telescope scans over the beam-smoothed sky,
+and this makes it easy to interpolate. Since the ring time-ordered data as a whole
+if periodic each of these evenly sampled ring subsets are also peridic, so we
+can interpolate via Fourier shifting.
+
+Given an array $a$ of samples of length $N$ and a discrete Fourier transform $F$,
+an array $a'$ equal to $a$ shifted downwards by $\Delta$ samples is given by
+\begin{align}
+	a_j' = a_{j+\Delta} &= \Psi(\Delta)_{jk} a_k \equiv F^{-1}_{jf} e^{-2\pi if\Delta/N} F_{fk} a_k
+\end{align}
+which defines the Fourier-shift matrix $\Psi(\Delta)$. Using this, the
+scan drift corrected ring TOD $d'$ in terms of the raw TOD $d$ is
+\begin{align}
+	d'^1_{p_1g_1} &= \Psi\big(g_1/N_\textrm{spin}\big)_{p_1p_1'} d_{p_1'g_1} & i &= p_1N_\textrm{spin} + g_1
+\end{align}
+corresponding to panel C in the figure. This involves interpolating
+a distance of up to $\frac12\cdot 360\degree\cdot N_\textrm{spin}/N_\textrm{scan}
+= 0.46875\degree$ on the sky, of about half a PIXIE FWHM. We can halve the
+interpolation distance by exploiting the spin-2 nature of our signal:
+only half a spin rotation is needed to return to the same configuration (panel F).
+\begin{align}
+	d'^2_{p_2g_2} &= \Psi\big(2g_2/N_\textrm{spin}\big)_{p_2p_2'} d_{p_2'g_2} & i &= p_2N_\textrm{spin}/2 + g_2
+\end{align}
+
+Undoing the effect of PIXIE's spin during the mirror motion follows the same
+logic on shorter time scales. We now into groups per mirror position (panel D)
+such that
+\begin{align}
+	d^\textrm{ort}_{sd} &= \Psi\big(d/N_\textrm{stroke}\big)_{ss'} d'_{s'd} & i &= sN_\textrm{stroke} + d
 \end{align}
 
 \subsection{Mapmaker pseudo-python}
@@ -645,39 +780,6 @@ for each scan:
 map /= hits
 output(map)
 \end{lstlisting}
-
-\begin{figure}
-	\centering
-	\includegraphics[angle=90,width=170mm]{plots/optics_ex1.pdf}
-	\caption{PIXIE optics example. Monochromatic pure vertical polarization (red) enters barrel
-	A at the left side of the figure. It passes through the vertical polarizer A
-	unmolested, but is split into two different linear combinations of vertical
-	and horizontal (blue) polarization at the diagonal polarizer B. It then encounters
-	the moving mirror, which in this example slightly retards the top optial path.
-	The rays are combined in the next diagonal polarizer C, but due to the
-	phase delay the horizontal polarization does not fully cancel. The vertical
-	polarization is correspondingly lower. The final vertical polarizer (D)
-	sends the vertical/horizontal polarization to horn L/R respectively.
-	If the mirror displacement were zero, all radiation entering barrel A/B
-	would end up in horn L/R.}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\begin{tabular}{m{90mm}m{70mm}}
-		\includegraphics[width=90mm]{plots/scan_orbit.pdf} &
-		\includegraphics[width=70mm]{plots/scan_car.pdf}
-	\end{tabular}
-	\caption{\emph{Left}: PIXIE would be located at the Sun-Earth L2 point,
-	and would scan in great circles while pointing $90\degree$ away from the
-	Sun, adjusting its orientation stepwise between each scan. This results
-	in the whole sky being covered every 6 months. \emph{Right}: PIXIE's
-	scanning pattern is particularly simple in ecliptic (extended) plate carrée (CAR)
-	coordinates, where each scan moves at constant pixel velocity purely along the
-	latidude axis. 3 example scans separated by 7.6 days are as black lines.
-	The extended CAR coordinates here cover two mirror images of the full sky
-	in order to show full scans without breaks.}
-\end{figure}
 
 \begin{figure}
 	\centering
@@ -856,43 +958,6 @@ output(map)
 	a barrel offset also turns the local quadrupole into $I\leftrightarrow P$
 	leakage, but this term has the opposite sign for oppositely aligned
 	detectors, and hence cancels.}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\begin{tabular}{ccc}
-		\includegraphics[width=0.32\textwidth]{plots/shift1.pdf} &
-		\includegraphics[width=0.32\textwidth]{plots/shift2.pdf} &
-		\includegraphics[width=0.32\textwidth]{plots/shift3.pdf} \\
-		\includegraphics[width=0.32\textwidth]{plots/shift6.pdf} &
-		\includegraphics[width=0.32\textwidth]{plots/shift5.pdf} &
-		\includegraphics[width=0.32\textwidth]{plots/shift4.pdf}
-	\end{tabular}
-	\caption{Orthogonalization of the scan, spin and stroke
-	motions. PIXIE scans in great circles on the sky, so the
-	signal is periodic during a scan. It also spins and strokes.
-	In isolation the signal would also be a periodic function
-	of the spin angle and mirror stroke position, but because
-	PIXIE scans while it spins, and spins
-	while the mirror strokes these dimensions get mixed and the
-	periodicity is lost on all but the scan timescale.
-	\emph{A}: Illustration of the mixing of the stroke (color),
-	spin (x-axis) and scan (y-axis) dimensions in the PIXIE scanning
-	pattern. \emph{B}: The subset of points with the same stroke
-	position and spin angle from periodic functions of the scan
-	angle. We use fourier interpolation to undo the scanning
-	motion during each spin. \emph{C}: Spin and stroke are still
-	mixed. \emph{D}: We fourier-interpolate between points with
-	the same stroke position within a spin to undo the spin
-	modtion during each stroke. \emph{E}: The scan, spin and stroke
-	are now unmixed. The resulting timestream simulates what we would
-	see if PIXIE stood still while the mirror strokes, then
-	instantanously rotates to a new spin angle, strokes again, etc.
-	and then instantanously moves to a new scan angle when the spin is done.
-	\emph{F}: The signal is spin-0 (I) or spin-2 (Q,U), so we can
-	shorten the interpolation distance and increse the pixel size
-	by mapping the $180\degree-360\degree$ interval to the $0\degree-
-	180\degree$ interval in spin angle.}
 \end{figure}
 
 \begin{figure}
