@@ -216,7 +216,7 @@ Combining this with the effect of pixie's pointing on the sky,
 we can express the total detector response as a function of the
 sky autocorrelation functions.
 \begin{align}
-\vec s_\textrm{det}(t) &= \overbrace{\frac12\begin{bmatrix}
+\vec s^\textrm{det}(t) &= \overbrace{\frac12\begin{bmatrix}
 	\vec e_I+\vec e_Q & 0 \\
 	\vec e_I-\vec e_Q & 0 \\
 	0 & \vec e_I+\vec e_Q  \\
@@ -228,15 +228,17 @@ sky autocorrelation functions.
 	\end{bmatrix}}^\textrm{Horn response}
 	\cdot
 	\overbrace{\begin{bmatrix}
-	R_{1t}\cdot\vec s_{\textrm{sky},A}(\hat p_{1t},0) \\
-	R_{2t}\cdot\vec s_{\textrm{sky},B}(\hat p_{2t},0) \\
-	R_{1t}\cdot\vec s_{\textrm{sky},A}(\hat p_{1t},\Delta t) \\
-	R_{2t}\cdot\vec s_{\textrm{sky},B}(\hat p_{2t},\Delta t)
+	R_{1t}\cdot\vec s^\textrm{sky}_A(\hat p_{1t},0) \\
+	R_{2t}\cdot\vec s^\textrm{sky}_B(\hat p_{2t},0) \\
+	R_{1t}\cdot\vec s^\textrm{sky}_A(\hat p_{1t},\Delta t) \\
+	R_{2t}\cdot\vec s^\textrm{sky}_B(\hat p_{2t},\Delta t)
 	\end{bmatrix}}^\textrm{Barrel signal}
 	\label{eq:response}
 \end{align}
-where $\hat p_{bt}$ is the sky pointing of barrel $b$ at time $t$,
-$\vec s_{\textrm{sky},b}(\hat p,\Delta t)$ is the beam-smoothed,
+$\vec s^\textrm{det}(t)$ is the vector of
+detector responses at time $t$,
+$\hat p_{bt}$ is the sky pointing of barrel $b$ at time $t$,
+$\vec s^\textrm{sky}_b(\hat p,\Delta t)$ is the beam-smoothed,
 frequency-weighted sky autocorrelation
 function Stokes vectors for the given pointing and time delay as
 seen by barrel $b$
@@ -259,7 +261,7 @@ noisy. The PIXIE hardware will also apply a bandpass filter to avoid
 aliasing and suppress low-frequency noise. Taking this into account,
 we model the time-ordered data as
 \begin{align}
-	\vec d_i = B_{ij} \int_{t_j-\Delta t/2}^{t_j+\Delta t/2} \vec s_\textrm{det}(t) \textrm{d}t + \vec n_i
+	\vec d_i = B_{ij} \int_{t_j-\Delta t/2}^{t_j+\Delta t/2} \vec s^\textrm{det}(t) \textrm{d}t + \vec n_i
 \end{align}
 where $i$ is the sample index, $B$ is the bandpass filter, $\Delta t$ is the sample
 interval and $\vec n_i$ is the noise in sample $i$. We implement this
@@ -622,19 +624,19 @@ a part of the noise.
 We assume that the calibrator in single barrel mode is constant and
 unpolarized. That means that its effect can be taken into account
 simply by adding back the calibrator spectrum in map space, and
-the mapmaker itself can ignore it, and set $\vec s_\textrm{sky,B}=0$.
+the mapmaker itself can ignore it, and set $\vec s^\textrm{sky}_B=0$.
 
 In double barrel mode we assume that the two barrels see the same signal,
 and that the V and U antisymmetric leakage terms can be ignored.
 Since I can't be recovered in double barrel mode, the two barrels are
 equivalent to a single barrel with no I but twice the polarization signal,
-so we can again set $\vec s_\textrm{sky,B}=0$ as long as we multiply the
+so we can again set $\vec s^\textrm{sky}_B=0$ as long as we multiply the
 detector response by 2. With this, equation~(\ref{eq:response}) simplifies
 to
 
 \begin{align}
-	\vec s_\textrm{det}(t) &=
-		G \cdot R_\textrm{spin}(t)\cdot\vec s_\textrm{sky}(\hat p_t,\Delta t)
+	\vec s^\textrm{det}(t) &=
+		G \cdot R_\textrm{spin}(t)\cdot\vec s^\textrm{sky}(\hat p_t,\Delta t)
 \end{align}
 where $G$ is the detector-barrel response matrix
 $G = \frac{g}{4}[\vec e_I+\vec e_Q,\vec e_I-\vec e_Q,-\vec e_I+\vec e_Q,
@@ -648,17 +650,22 @@ does not induce polarization rotation in ecliptic coordinates, and that all
 samples in a ring will have constant ecliptic longitude, up to pole wrapping.
 The sampling rate and telescope scan, spin and stroke speed are constant;
 and there is an integer number of samples per stroke, strokes per spin and spins
-per scan.
+per scan. Using this, the data model simplifies further to
 
 \begin{align}
-	\vec s_\textrm{det}^\textrm{ring}(i) &= G \cdot
+	\vec s^\textrm{sky}_{ri} &= G \cdot
 		R_\textrm{stok}\Big(\frac{4\pi i}{N_\textrm{spin}}\Big) \cdot
-		\vec s_\textrm{sky}\Big(\Big[l=l_\textrm{ring},b=\frac{2\pi i}{N_\textrm{scan}}\Big],
+		\vec s^\textrm{sky}\Big(\Big[l=l_0+r\Delta l,b=b_0+\frac{2\pi i}{N_\textrm{scan}}\Big],
 		A_\textrm{delay}\textrm{triangle}\Big(\frac{i}{N_\textrm{stroke}}\Big)\Big)
+		\label{eq:sring}
 \end{align}
-where $N_\textrm{scan} = 5\,898\,240$,$N_\textrm{spin} = 15\,360$ and
-$N_\textrm{stroke} = 1\,920$ are the number
-of samples per scan, spin and stroke respectively.
+where $r$ is the ring index and $i$ is the sample inside the ring (such
+that the total sample number in the time-ordered data is $rN_\textrm{scan}+i$),
+where $N_\textrm{stroke} = 1\,920$, $N_\textrm{spin} = P_\textrm{spin}N_\textrm{stroke}
+= 15\,360$ and $N_\textrm{scan} = P_\textrm{scan}N_\textrm{spin} = 5\,898\,240$
+are the number of samples per scan, spin and stroke respectively, and where
+$P_\textrm{spin} = 8$ and $P_\textrm{scan} = 384$ are the number of
+strokes per spin and spins per scan respectively.
 
 \paragraph{Simple noise}
 For simplicity, we will also assume that the detectors have independent white
@@ -669,11 +676,17 @@ relaxed in the future.
 It would have been very convenient if the stroke, spin and scan motions were
 orthogonal, so that the telescope didn't spin during a stroke and didn't scan
 during a spin. That would allow us to demodulate each of them independently.
+Rather than have stroke, spin and pointing change smoothly during each scan
+we would have $P_\textrm{scan}$ pointings (corresponding
+to our output pixels), each with
+$P_\textrm{spin}$ spin angles measured, and for each
+of those $N_\textrm{delay}$ mirror positions.
+
 Figure~\ref{fig:shift} illustrates the situation. In the 3-dimensional
 space of latitude, spin angle and mirror position (corresponding to the
 horizontal, vertical and color axis in the figure), the scanning pattern
-traces out a slightly skewed grid (A) instead of the orthogonal grid
-that would be convenient (E). But as long as our signal is well-sampled
+traces out a skewed grid (A) instead of the orthogonal grid
+that would be convenient (E). However, as long as our signal is well-sampled
 in all directions in the grid we can use the samples we have to
 interpolate to orthogonal grid we wish we had.
 
@@ -717,37 +730,77 @@ interpolate to orthogonal grid we wish we had.
 
 We start by undoing the effect of the scan motion during each scan (and stroke)
 by splitting our samples into groups with the same spin angle and mirror position.
+Letting $d_i$ be the i'th sample of the time-ordered data $d$ for a single detector
+for a single ring, we split into groups such that
+sample (pixel) $p$ in group $g \in \{0,N_\textrm{spin}-1\}$ corresponds to
+$i = pN_\textrm{spin}+g$, and let the notation $d_{ps} \equiv d_{i=pN_\textrm{spin}+g}$.
 Because the shorter time-scale parameters are constant within each group, they see
-a signal that changes smoothly as the telescope scans over the beam-smoothed sky,
+a signal that changes smoothly as the telescope scans over the beam-smoothed sky
+(i.e. as $p$ changes while $g$ is fixed),
 and this makes it easy to interpolate. Since the ring time-ordered data as a whole
 if periodic each of these evenly sampled ring subsets are also peridic, so we
-can interpolate via Fourier shifting.
-
-Given an array $a$ of samples of length $N$ and a discrete Fourier transform $F$,
+can interpolate via Fourier shifting: Given an array $a$ of samples of length $N$ and a discrete Fourier transform $F$,
 an array $a'$ equal to $a$ shifted downwards by $\Delta$ samples is given by
 \begin{align}
 	a_j' = a_{j+\Delta} &= \Psi(\Delta)_{jk} a_k \equiv F^{-1}_{jf} e^{-2\pi if\Delta/N} F_{fk} a_k
 \end{align}
-which defines the Fourier-shift matrix $\Psi(\Delta)$. Using this, the
-scan drift corrected ring TOD $d'$ in terms of the raw TOD $d$ is
+which defines the Fourier-shift matrix $\Psi(\Delta)$. Using this,
+the scan drift corrected tod $d'$ is given by:
 \begin{align}
-	d'^1_{p_1g_1} &= \Psi\big(g_1/N_\textrm{spin}\big)_{p_1p_1'} d_{p_1'g_1} & i &= p_1N_\textrm{spin} + g_1
+	\vec s^\textrm{shift}_{rpg} &= \Psi\big(g/N_\textrm{spin}\big)_{pp'} \vec s^\textrm{det}_{rp'g}
 \end{align}
 corresponding to panel C in the figure. This involves interpolating
 a distance of up to $\frac12\cdot 360\degree\cdot N_\textrm{spin}/N_\textrm{scan}
 = 0.46875\degree$ on the sky, of about half a PIXIE FWHM. We can halve the
 interpolation distance by exploiting the spin-2 nature of our signal:
 only half a spin rotation is needed to return to the same configuration (panel F).
-\begin{align}
-	d'^2_{p_2g_2} &= \Psi\big(2g_2/N_\textrm{spin}\big)_{p_2p_2'} d_{p_2'g_2} & i &= p_2N_\textrm{spin}/2 + g_2
-\end{align}
+This spin-2 scan drift correction is identical to the one bove, but with
+half the normal value of $N_\textrm{spin}$.
 
 Undoing the effect of PIXIE's spin during the mirror motion follows the same
-logic on shorter time scales. We now into groups per mirror position (panel D)
+logic on shorter time scales. We now group by mirror position (panel D)
 such that
 \begin{align}
-	d^\textrm{ort}_{sd} &= \Psi\big(d/N_\textrm{stroke}\big)_{ss'} d'_{s'd} & i &= sN_\textrm{stroke} + d
+	\vec s^\textrm{ort}_{rs\delta} &= \Psi\big(\delta/N_\textrm{stroke}\big)_{ss'} \vec s^\textrm{shift}_{rs'\delta}
 \end{align}
+with $i = sN_\textrm{stroke}+\delta$, $s$ being the number of completed strokes
+and $\delta$ being the index in the mirror displacement pattern.
+
+The orthogonalized equivalent to eq.~\ref{eq:sring} is
+\begin{align}
+	\vec s^\textrm{ort}_{rps\delta} &= G R_\textrm{stok}
+		\Big(\frac{4\pi s}{P_\textrm{spin}}\Big) \vec s^\textrm{sky}_{rp\delta} &
+		\textrm{with} & &
+	\vec s^\textrm{sky}_{rp\delta} &=
+		\vec s^\textrm{sky}\Big([l_r,b_p],
+		A_\textrm{delay}\textrm{triangle}\Big(\frac{\delta}{N_\textrm{stroke}}\Big)\Big)
+	\label{eq:sort}
+\end{align}
+and where $l_r = l_0 + r\Delta l$ is the longitude of ring $r$,
+$b_p = b_0 + \frac{2\pi p}{P_\textrm{scan}}$ is the latitude of pixel $p$
+along the ring.
+
+\subsection{Spin demodulation}
+Now that position, spin angle and mirror position are independent, we can
+handle each of them separately. We start by demodulating the spin.
+Suppressing the indices $r$, $p$ and $\delta$ to avoid excessive
+verbosity, and expanding $\vec s^\textrm{sky} = [I,Q,U]$, 
+equation~\ref{eq:sort} evaluates to
+\begin{align}
+	s^\textrm{ort}_{ds} &= \left[G_{dI} I +
+		(G_{dQ}-iG_{dU})e^{4\pi i s/P_\textrm{spin}} (Q + iU)\right]
+\end{align}
+This is just a weighted sum of 3 orthogonal fourier modes,
+and can be straightforwardly inverted as
+\begin{align}
+	I &= \langle G_{dI}^{-1} s^\textrm{ort}_{ds}\rangle_{ds} &
+	Q &= \Re \langle G_{dQ}^{-1}
+			e^{-4\pi i s/P_\textrm{spin}} s^\textrm{ort}_{ds}\rangle_{ds} &
+	U &= \Im \langle G_{dQ}^{-1}
+			e^{-4\pi i s/P_\textrm{spin}} s^\textrm{ort}_{ds}\rangle_{ds}
+\end{align}
+which is simply the gain-correct 0th Fourier mode and
+real and imaginary part of the 2nd Fourier mode.
 
 \subsection{Mapmaker pseudo-python}
 \begin{lstlisting}
