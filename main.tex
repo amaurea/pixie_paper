@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{amsmath,gensymb,color,graphicx,array}
+\usepackage{amsmath,gensymb,color,graphicx,array,authblk}
 \usepackage[margin=22mm]{geometry}
 \usepackage{listings}
 \usepackage[utf8]{inputenc}
@@ -35,7 +35,31 @@
 	showstringspaces=false
 }
 
+\title{PIXIE time-ordered data simulation and map-making}
+
+\author[1,3]{S. K. Næss}
+\author[2,3]{J. Dunkley}
+%\author[4,5]{D. J. Fixen}
+%\author[5]{A. Kogut}
+\affil[1]{Center for Computational Astrophysics, Flatiron Institute}
+\affil[2]{Princeton University}
+\affil[3]{Oxford University}
+%\affil[4]{University of Maryland}
+%\affil[5]{Goddard Space Flight Center}
+
 \begin{document}
+\maketitle
+\begin{abstract}
+	We develop a time-ordered data simulator and mapmaker for the
+	proposed PIXIE fourier transform spectrometer and use them to
+	investigate the impact of polarization leakage, imperfect collimation,
+	elliptical beams, subpixel effects, correlated noise and
+	spectrometer mirror jitter on the PIXIE data analysis. We find
+	that PIXIE is robust to all of these effects, with the exception
+	of mirror jitter which could become the dominant source of noise
+	in the experiment if the jitter is not kept significantly below
+	$1\mu m\sqrt{s}$.
+\end{abstract}
 
 \section{The PIXIE fourier transform spectrometer}
 PIXIE has two barrels, A and B. We can expand the electric field $\vec E^A(t)$,
@@ -164,7 +188,7 @@ therefore uncorrelated, and all the cross-terms disappear.
 \end{align}
 
 \paragraph{Double barrel mode}
-In double barrel mode the two barrels are both coaligned exposed to the sky,
+In double barrel mode the two barrels are both coaligned and exposed to the sky,
 so they observe the same wavefront entering. As PIXIE's angular resolution is
 not infinite it is sensitive to wavefronts that are off-axis by a few degrees.
 Light arriving from direction $\hat n$ will hit Barrel B a time
@@ -185,7 +209,7 @@ The leakage terms are not yet implemented in the simulator described in this
 article. However, as they are all proportional to $\sin(\omega\Delta t)$ and
 are therefore an antisymmetric function of the mirror stroke, they can be
 easily disentangled from the main signal which is symmetric. Their absence
-from the simulation should therefore impact our results meaninfully.
+from the simulation should therefore not impact our results meaningfully.
 
 In the absence of the leakage terms, the signal in double barrel mode is
 identical to that of single barrel mode with $(I^A,Q^A,U^A,V^A)=(I^B,Q^B,U^B,V^B)$,
@@ -379,23 +403,40 @@ functions
 at an arbitrary point $\hat p$ on the sky for an arbitrary phase
 delay $\Delta t$ for each component that makes up the sky (CMB, dust, etc.).
 
-\subsection{Approaches that don't work}
+\subsection{Precomputing the autocorrelation function as a data cube}
 \label{s:autocorr-problems}
 A straightforward and general way of doing this would be to precompute the
-full-sky autocorrelation function: Evaluate the full-sky spectrum at equi-spaced
-frequencies; apply the beam to each frequency map and scale each frequency by
-the instrument's frequency response; and Fourier transform the result
-to get a (pixelized version of) the full-sky autocorrelation function. To read off
-the value at a general $(\hat p, \Delta t)$ one would then do an interpolated lookup
-in this $N_\textrm{pix}$ by $N_\textrm{delay}$ data cube. This approach has the
-advantage of being able to handle frequency-dependent beams, which are otherwise
-very hard to implement. However, in order to be able to investigate the effect
-of sub-resolution features (both spectrally and spatially) this data cube would
-need to be pixelized at many times higher resolution than the PIXIE output map.
-This made the memory requirements of this approach prohibitively high. For example,
+full-sky autocorrelation function:
+\begin{enumerate}
+	\item Evaluate the full-sky spectrum at equi-spaced
+frequencies
+	\item Apply any frequency-dependent beam to each frequency map and
+scale each frequency by the instrument's frequency response.
+	\item Fourier transform the result to get a (pixelized version of)
+		the full-sky autocorrelation function.
+	\item Apply any mirror-position-dependent beam or response to
+		each delay in the result.
+\end{enumerate}
+To read off the value at a general $(\hat p, \Delta t)$ one would then do
+an interpolated lookup in this $N_\textrm{pix}$ by $N_\textrm{delay}$ data
+cube. This approach has the advantage of being able to handle both frequency-
+and delay-dependent beams, which are otherwise hard to implement.
+
+However, it also has some important limitations. Because it stores the full
+spectrum/autocorrelation function in each pixel, its memory requirements
+scale poorly with resolution. This makes it impractical to investigate the effect
+of sub-resolution features (both spectrally and spatially) - to do so would
+require the data cube to be pixelized at many times higher resolution
+than the PIXIE output map, which would make the memory requirements of this approach
+prohibitively high. For example,
 for $0.1\degree$ spatial resolution and 5000 frequency bins, storing the full-sky
 autocorrelation function would need about 700 GB of RAM.
 
+We will therefore save the data cube approach for a future investigation of the
+effects of frequency- and delay-dependent beams, and go with an approach that
+allows for high-resolution simulations in this paper.
+
+\subsection{Other approaches}
 If one assumes a frequency-independent beam, which should be a good approximation
 for PIXIE, and if the spectrum can be written as a linear sum of a a smaller
 number of spatial templates, then it's sufficient to apply the beam to those
@@ -430,7 +471,7 @@ observes the CMB with the spectrum
 \begin{align}
 I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= \rho(\nu)B_\nu(\nu, T(\hat p)) = \frac{2h\nu^3\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{kT(\hat p)}} - 1}
 \end{align}
-Here the $I$ subscript indicates the Stokes parameter, and $T(\hat p)$ is the
+Here the $I$ subscript indicates the Stokes intensity parameter, and $T(\hat p)$ is the
 CMB temperature at pointing $\hat p$.
 Including the doppler dipole, T only has a contrast of order $10^{-3}$, so a Taylor
 expansion in T will converge rapidly. Our goal is $<10^{-9}$ relative error, so an
@@ -722,7 +763,7 @@ interpolate to orthogonal grid we wish we had.
 	instantanously rotates to a new spin angle, strokes again, etc.
 	and then instantanously moves to a new scan angle when the spin is done.
 	\emph{F}: The signal is spin-0 (I) or spin-2 (Q,U), so we can
-	shorten the interpolation distance and increse the pixel size
+	shorten the interpolation distance and decrease the pixel size
 	by mapping the $180\degree-360\degree$ interval to the $0\degree-
 	180\degree$ interval in spin angle.}
 	\label{fig:shift}
@@ -738,8 +779,8 @@ Because the shorter time-scale parameters are constant within each group, they s
 a signal that changes smoothly as the telescope scans over the beam-smoothed sky
 (i.e. as $p$ changes while $g$ is fixed),
 and this makes it easy to interpolate. Since the ring time-ordered data as a whole
-if periodic each of these evenly sampled ring subsets are also peridic, so we
-can interpolate via Fourier shifting: Given an array $a$ of samples of length $N$ and a discrete Fourier transform $F$,
+is periodic each of these evenly sampled ring subsets is also periodic, so we
+can interpolate via Fourier shifting: Given an array $a$ containing $N$ samples and a discrete Fourier transform $F$,
 an array $a'$ equal to $a$ shifted downwards by $\Delta$ samples is given by
 \begin{align}
 	a_j' = a_{j+\Delta} &= \Psi(\Delta)_{jk} a_k \equiv F^{-1}_{jf} e^{-2\pi if\Delta/N} F_{fk} a_k
@@ -754,7 +795,7 @@ a distance of up to $\frac12\cdot 360\degree\cdot N_\textrm{spin}/N_\textrm{scan
 = 0.46875\degree$ on the sky, of about half a PIXIE FWHM. We can halve the
 interpolation distance by exploiting the spin-2 nature of our signal:
 only half a spin rotation is needed to return to the same configuration (panel F).
-This spin-2 scan drift correction is identical to the one bove, but with
+This spin-2 scan drift correction is identical to the one above, but with
 half the normal value of $N_\textrm{spin}$.
 
 Undoing the effect of PIXIE's spin during the mirror motion follows the same
@@ -854,7 +895,7 @@ output(map)
 	\caption{The input beam-smoothed sky model evaluated at 58 GHz in the CAR
 	projection in ecliptic coordinates. The color range is
 	$\pm 400$ kJy/sr in I and $\pm 200$ Jy/sr in P, except for dust I where it is
-	$\pm 5$ kJy/sr. The mean has been subtracted in each map for plotting purposes.}
+	$\pm 5$ kJy/sr. The monopole has been subtracted in each map for plotting purposes.}
 \end{figure}
 
 \begin{figure}
@@ -1005,7 +1046,7 @@ output(map)
 	increases the error consistent with a $\sim 1"$ smoothing
 	of the map (orange). However, if one only looks at a single
 	detector the error increase is dramatic (magenta) for
-	the spin-2 shift. This is because the spin-2 shift assumes
+	the spin-2 shift in Q. This is because the spin-2 shift assumes
 	that the signal is the same after a $180\degree$ spin rotation,
 	but with a barrel offset this is not the case. To a lesser extent
 	a barrel offset also turns the local quadrupole into $I\leftrightarrow P$
