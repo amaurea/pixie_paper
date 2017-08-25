@@ -61,6 +61,8 @@
 	$1\mu m\sqrt{s}$.
 \end{abstract}
 
+\section{Introduction}
+
 \section{The PIXIE fourier transform spectrometer}
 PIXIE has two barrels, A and B. We can expand the electric field $\vec E^A(t)$,
 $\vec E^B(t)$ that enters these barrels in terms of Jones vectors as
@@ -300,6 +302,7 @@ For the bandpass filter we used a Butterworth bandpass filter.
 \end{align}
 
 \section{Pointing}
+\label{sec:pointing}
 PIXIE will orbit at the Sun-Earth L2 point, placing it in the ecliptic, with
 a heliocentric ecliptic latitude $b=0$ and longitude $l=l_0 +
 360\degree\frac{t-t_0}{T_\textrm{orbit}}$ with $T_\textrm{orbit} = 1\textrm{year}$.
@@ -466,6 +469,7 @@ is evaluated as a perturbation around a different but similar
 precomputed autocorrelation function. This is done differently for each sky component.
 
 \subsubsection{CMB}
+\label{sect:cmb}
 Taking into account the instrument's frequency response $\rho(\nu)$, PIXIE
 observes the CMB with the spectrum
 \begin{align}
@@ -536,6 +540,7 @@ ecliptic coordinates $l=171.646$, $b=-11.141$.}
 to account for our motion relative to the CMB, resulting in the CMB dipole.
 
 \subsubsection{Dust}
+\label{sect:dust}
 We model the dust as a modified blackbody with constant
 $T=19.6$K and $\beta=1.59$, but varying opacity. The observed spectrum is thus
 \begin{align}
@@ -621,9 +626,11 @@ $\Delta\phi$ and $\Delta\theta$ (see eq.~(\ref{eq:barrel})),
 a beam profile, and a Muller matrix which encodes its
 intensity and leakage properties.
 
-\section{Results}
-
 \subsection{Simulator pseudo-python}
+The full source code of the simulator can be found in the
+classes \texttt{OpticsSim} and \texttt{ReadoutSim} in
+\texttt{pixie.py} in \cite{pixie_repo}, but the
+overall logic is summarized in the pseudo-code below.
 \begin{lstlisting}
 for each barrel, beam:
 	skies[barrel.sky, beam] = prepare_sky(barrel.sky, beam)
@@ -749,20 +756,27 @@ interpolate to orthogonal grid we wish we had.
 	PIXIE scans while it spins, and spins
 	while the mirror strokes these dimensions get mixed and the
 	periodicity is lost on all but the scan timescale.
-	\emph{A}: Illustration of the mixing of the stroke (color),
+	\textbf{A}: Illustration of the mixing of the stroke (color),
 	spin (x-axis) and scan (y-axis) dimensions in the PIXIE scanning
-	pattern. \emph{B}: The subset of points with the same stroke
+	pattern. \textbf{B}: A subset of points with the same stroke
 	position and spin angle from periodic functions of the scan
-	angle. We use fourier interpolation to undo the scanning
-	motion during each spin. \emph{C}: Spin and stroke are still
-	mixed. \emph{D}: We fourier-interpolate between points with
+	angle. The open circles represent the positions at which
+	we have a measurement, while the filled ones are the positions
+	we want to estimate. The red curve represents the smoothly
+	varying signal inferred from the open points, which is used to
+	interpolate the values at the filled points. The effect of
+	this is to undo the scanning motion during each spin.
+	Note that the red curve has its own x axis corresponding
+	to the time-ordered data values.
+	\textbf{C}: Spin and stroke are still
+	mixed. \textbf{D}: We fourier-interpolate between points with
 	the same stroke position within a spin to undo the spin
-	modtion during each stroke. \emph{E}: The scan, spin and stroke
+	modtion during each stroke. \textbf{E}: The scan, spin and stroke
 	are now unmixed. The resulting timestream simulates what we would
 	see if PIXIE stood still while the mirror strokes, then
 	instantanously rotates to a new spin angle, strokes again, etc.
 	and then instantanously moves to a new scan angle when the spin is done.
-	\emph{F}: The signal is spin-0 (I) or spin-2 (Q,U), so we can
+	\textbf{F}: The signal is spin-0 (I) or spin-2 (Q,U), so we can
 	shorten the interpolation distance and decrease the pixel size
 	by mapping the $180\degree-360\degree$ interval to the $0\degree-
 	180\degree$ interval in spin angle.}
@@ -844,6 +858,10 @@ which is simply the gain-correct 0th Fourier mode and
 real and imaginary part of the 2nd Fourier mode.
 
 \subsection{Mapmaker pseudo-python}
+The full source code of the mapmaker can be found in the
+programs \texttt{tod2ring.py} and \texttt{ring2map.py} in
+\cite{pixie_repo}, but the overall logic is summarized in
+the pseudo-code below.
 \begin{lstlisting}
 map  = zeros([nfreq,{I,Q,U},nlat,nlon])
 hits = zeros([nlat,nlon])
@@ -875,6 +893,18 @@ map /= hits
 output(map)
 \end{lstlisting}
 
+\section{Results}
+We generated a simple two-component CMB + dust sky model as described in
+section~\ref{sect:cmb}-\ref{sect:dust}. A 58 GHz slice of this
+model can be seen in figure~\ref{fig:model}. We then simulated
+scanning across this model with the accelerated scanning pattern
+described in section~\ref{sec:pointing}, which would result in 384
+scans per orbit.
+However, since the scans are great circles, only half an orbit
+is needed to cover the whole sky. Our simulations therefore consist
+of 192 scans, each consisting of 5898240 samples for each of 4
+detectors at 256 Hz.
+
 \begin{figure}
 	\centering
 	\hspace*{-15mm}\begin{tabular}{rm{56mm}m{54.4mm}m{56mm}}
@@ -896,7 +926,23 @@ output(map)
 	projection in ecliptic coordinates. The color range is
 	$\pm 400$ kJy/sr in I and $\pm 200$ Jy/sr in P, except for dust I where it is
 	$\pm 5$ kJy/sr. The monopole has been subtracted in each map for plotting purposes.}
+	\label{fig:model}
 \end{figure}
+
+\subsection{Testing the framework}
+Before investigating complications from instrument imperfections,
+it's useful to benchmark the performance of the simulator
+and mapmaker on noiseless, ideal data. Figure~\ref{fig:tod} shows
+a scan's worth of simulated noiseless PIXIE time-ordered data for
+a single detector, in both single and double barrel mode, and
+figure~\ref{fig:spatbias} shows the corresponding recovered maps
+and their deviation from the input model at 58 GHz evaluated at
+the center of each pixel. Even under these idealized conditions
+the residual is not zero, though it is small: ~500 mJy/sr for
+dust and much less for the CMB in T, compared to the ~100 MJy/sr
+CMB monopole; and ~5 mJy/sr in P, compared to 200 Jy/sr for the signal.
+Figure~\ref{fig:specbias} shows the signal and bias spectra for
+a single input pixel, compared to the expected instrument noise.
 
 \begin{figure}
 	\centering
@@ -922,6 +968,7 @@ output(map)
 	right}: Zoom on a single mirror half-stroke, centered on
 	$\Delta t=0$. This is effectively a plot of the electric field's
 	autocorrelation function at this position.}
+	\label{fig:tod}
 \end{figure}
 
 \begin{figure}
@@ -944,6 +991,7 @@ output(map)
 			input maps at the same frequency for a noise-less simulation.
 			The color range is $\pm 500$ mJy/sr for I and $\pm 5$ mJy/sr for P.
 			These represent the bias of the simulator-mapmaker combination.}
+	\label{fig:spatbias}
 \end{figure}
 
 \begin{figure}
@@ -962,6 +1010,7 @@ output(map)
 	(i.e. half-way between the red points in the middle panel) using fourier
 	(red) and spline (green) interpolation, and then back again using fourier interpolation
 	in both cases. When the forwards and backwards methods do not match, the result is biased.}
+	\label{fig:iptoy}
 \end{figure}
 
 \begin{figure}
@@ -976,6 +1025,7 @@ output(map)
 	$\sim 5$ times lower than the noise at the worst point at 2 THz. At 200
 	Hz the bias is $\sim 10^{-10}$ of the signal in I and $\sim 10^{-6}$
 	of the signal in P. These errors are independent of observing mode.}
+	\label{fig:specbias}
 \end{figure}
 
 \begin{figure}
