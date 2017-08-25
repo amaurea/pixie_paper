@@ -50,10 +50,10 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-	We develop a time-ordered data simulator and mapmaker for the
+	We develop a time-ordered data simulator and map-maker for the
 	proposed PIXIE fourier transform spectrometer and use them to
 	investigate the impact of polarization leakage, imperfect collimation,
-	elliptical beams, subpixel effects, correlated noise and
+	elliptical beams, sub-pixel effects, correlated noise and
 	spectrometer mirror jitter on the PIXIE data analysis. We find
 	that PIXIE is robust to all of these effects, with the exception
 	of mirror jitter which could become the dominant source of noise
@@ -660,19 +660,19 @@ for each scan:
 PIXIE's observing strategy is designed to make mapmaking
 fast and accurate. To be as general as possible we avoided depending
 on these features in the TOD simulator, but we make use of them
-in the mapmaker.
+in the map-maker.
 
 \paragraph{No DC signal}
 The unmodulated component (DC) of the signal changes on minute timescales,
 which will not be recoverable due to correlated noise and the TOD highpass
-filter. We ignore this component in the mapmaker, and simply treat it as
+filter. We ignore this component in the map-maker, and simply treat it as
 a part of the noise.
 
 \paragraph{Single sky}
 We assume that the calibrator in single barrel mode is constant and
 unpolarized. That means that its effect can be taken into account
 simply by adding back the calibrator spectrum in map space, and
-the mapmaker itself can ignore it, and set $\vec s^\textrm{sky}_B=0$.
+the map-maker itself can ignore it, and set $\vec s^\textrm{sky}_B=0$.
 
 In double barrel mode we assume that the two barrels see the same signal,
 and that the V and U antisymmetric leakage terms can be ignored.
@@ -721,6 +721,7 @@ noise of equal amplitude. Neither of these are necessary, and can be easily
 relaxed in the future.
 
 \subsection{Orthogonalization}
+\label{sect:ortho}
 It would have been very convenient if the stroke, spin and scan motions were
 orthogonal, so that the telescope didn't spin during a stroke and didn't scan
 during a spin. That would allow us to demodulate each of them independently.
@@ -858,7 +859,7 @@ which is simply the gain-correct 0th Fourier mode and
 real and imaginary part of the 2nd Fourier mode.
 
 \subsection{Mapmaker pseudo-python}
-The full source code of the mapmaker can be found in the
+The full source code of the map-maker can be found in the
 programs \texttt{tod2ring.py} and \texttt{ring2map.py} in
 \cite{pixie_repo}, but the overall logic is summarized in
 the pseudo-code below.
@@ -930,20 +931,6 @@ detectors at 256 Hz.
 \end{figure}
 
 \subsection{Testing the framework}
-Before investigating complications from instrument imperfections,
-it's useful to benchmark the performance of the simulator
-and mapmaker on noiseless, ideal data. Figure~\ref{fig:tod} shows
-a scan's worth of simulated noiseless PIXIE time-ordered data for
-a single detector, in both single and double barrel mode, and
-figure~\ref{fig:spatbias} shows the corresponding recovered maps
-and their deviation from the input model at 58 GHz evaluated at
-the center of each pixel. Even under these idealized conditions
-the residual is not zero, though it is small: ~500 mJy/sr for
-dust and much less for the CMB in T, compared to the ~100 MJy/sr
-CMB monopole; and ~5 mJy/sr in P, compared to 200 Jy/sr for the signal.
-Figure~\ref{fig:specbias} shows the signal and bias spectra for
-a single input pixel, compared to the expected instrument noise.
-
 \begin{figure}
 	\centering
 	\begin{tabular}{cc}
@@ -984,13 +971,13 @@ a single input pixel, compared to the expected instrument noise.
 		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 7.5mm 0]{plots/std_sb_diff_1.png} &
 		\includegraphics[height=29.7mm,clip,trim=7.5mm 0 0 0]{plots/std_sb_diff_2.png}
 	\end{tabular}
-	\caption{Simulator/mapmaker spatial bias test.
+	\caption{Simulator/map-maker spatial bias test.
 		\emph{Top row}: The beam-smoothed output map at 58 GHz.
 			The color range is $\pm 400$ kJy/sr for I and $\pm 200$ Jy/sr for P.
 		\emph{Bottom row}: Difference between the mapmaking output maps and
 			input maps at the same frequency for a noise-less simulation.
 			The color range is $\pm 500$ mJy/sr for I and $\pm 5$ mJy/sr for P.
-			These represent the bias of the simulator-mapmaker combination.}
+			These represent the bias of the simulator-map-maker combination.}
 	\label{fig:spatbias}
 \end{figure}
 
@@ -1002,7 +989,7 @@ a single input pixel, compared to the expected instrument noise.
 		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_interpol.pdf} &
 		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_residual.pdf}
 	\end{tabular}
-	\caption{1-dimensional toy example of subpixel mismatch bias.
+	\caption{1-dimensional toy example of sub-pixel mismatch bias.
 	\emph{Left}: The input data set, which is a densely sampled sine wave with
 	25 points per wavelength. \emph{Middle}: Two models for the sub-pixel behavior
 	of the data set (fourier and spline interpolation) disagree slightly.
@@ -1016,7 +1003,7 @@ a single input pixel, compared to the expected instrument noise.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{plots/error_std_sb_abs_log_log.pdf}
-	\caption{Simulator/mapmaker spectral bias test. Recovered I and Q spectra and
+	\caption{Simulator/map-maker spectral bias test. Recovered I and Q spectra and
 	their errors for a noiseless simulation
 	with 9 Gaussian quadrature subsamples per sample, compared to the pixie
 	noise level. This is all for a single pixel at $l=0\degree$,$b=0\degree$.
@@ -1036,25 +1023,131 @@ a single input pixel, compared to the expected instrument noise.
 		\includegraphics[height=70mm,clip,trim=30mm 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_Q.pdf}
 	\end{tabular}
 	\caption{The effect of sample window and fourier shift distance on the
-	mapmaking bias. Both of these are examples of subpixel bias. The sample
+	mapmaking bias. Both of these are examples of sub-pixel bias. The sample
 	window error comes from the mismatch between the gaussian quadrature that is
 	used to integrate the sample window and the fourier-space deconvolution that
 	is used to remove it. It rises with frequency and is a $\sim 10^{-7}$ error
 	at 1 THz. The fourier shift error comes from the mismatch between the
-	high-res bicubic subpixel behavior of the sky in the simulator and the
-	bandlimited fourier model used in the mapmaker. It has a surprisingly large
+	high-res bicubic sub-pixel behavior of the sky in the simulator and the
+	bandlimited fourier model used in the map-maker. It has a surprisingly large
 	dependence on the interpolation distance. Spin-1 fourier shifting has
 	twice the interpolation distance of Spin-2 fourier shifting, but $10^3-10^4$
 	times as large a bias. The red curve shows the error for a
 	monopole-only sky when using no sample window, demonstrating
-	that aside from subpixel biases the accuracy is close to double
+	that aside from sub-pixel biases the accuracy is close to double
 	precision float error.
 	The relative Q error is high at low frequency because the signal itself
 	becomes very small there. The feature at 90 GHz is due to Q changing
 	sign there for this pixel.
 	}
+	\label{fig:subpixel-spec}
 \end{figure}
 
+
+Before investigating complications from instrument imperfections,
+it's useful to benchmark the performance of the simulator
+and map-maker on noiseless, ideal data. Figure~\ref{fig:tod} shows
+a scan's worth of simulated noiseless PIXIE time-ordered data for
+a single detector, in both single and double barrel mode, and
+figure~\ref{fig:spatbias} shows the corresponding recovered maps
+and their deviation from the input model at 58 GHz evaluated at
+the center of each pixel. Even under these idealized conditions
+the residual is not zero, though it is small: ~500 mJy/sr for
+dust and much less for the CMB in T, compared to the ~100 MJy/sr
+CMB monopole; and ~5 mJy/sr in P, compared to 200 Jy/sr for the signal.
+Figure~\ref{fig:specbias} shows the signal and bias spectra for
+a single input pixel, compared to the expected instrument noise.
+
+We believe that these biases are almost entirely due to sub-pixel effects.
+During the orthoganalization procedure (section~\ref{sect:ortho})
+interpolation is needed to go from the observed samples to the
+idealized, orthogonal samples. The map-maker uses fourier-interpolation
+to do this, but the simulator uses bicubic spline interpolation to
+generate samples that fall between input pixels. Hence, the
+simulator and map-maker are making different assumptions about how
+the signal behaves on sub-pixel scales, and this mismatch leads
+to $\textrm{map}\rightarrow\textrm{tod}$ and $\textrm{tod}\rightarrow
+\textrm{map}$ not being exact inverses of each other. Figure~\ref{fig:iptoy}
+has a 1-dimensional toy example which demonstrates this effect.
+
+Sub-pixel errors also occur during the sample window deconvolution.
+The sample window is simulated by integrating sub-samples using
+gaussian quadrature, which amounts to assuming that the sub-sample
+behavior is described by a low-order polynomial. However, the
+deconvolution is done by dividing by a sample window in fourier space,
+which assumes that the sub-pixel behavior is given by sines and
+cosines bandlimated by the sampling frequency.
+
+We investigate the effect of these sub-pixel effects in
+figure~\ref{fig:subpixel-spec}, where we first remove the
+sample window (both in simulation and map-making), and then
+make the map spatially homogeneous to eliminate sub-pixel effects.
+After removing both of these, we are left with a relative error of
+$\sim10^{-15}$, which we attribute to floating point errors.
+
+These sub-pixel effects would not have appeared if the simulator
+and map-maker both made the same assumptions about sub-pixel behavior.
+However, that would not have been a good thing, because while it's
+possible
+to make the simulator match the map-makers fourier-sub-pixels,
+the real data won't be as kind. Of course, reality is just as unlikely
+to be fourier-sub-pixel as bicubic-sub-pixel, but the mismatch between
+these two gives a good indication of the mismatch one can expect
+between the real data and the sub-pixel assumptions made in the map-maker.
+
+\subsection{Instrumental effects}
+\subsubsection{Intensity to polarizaiton leakage}
+To first order, PIXIE is immune to intensity to polarization
+(I-to-P) leakage because any term sourced by I is not
+modulated as a spin-2 field as the telescope spins, and is
+therefore not classified as polarization. We confirm this
+in simulations, where even 100\% I-to-P leakage in the
+optics have no effect on the result.
+
+However, this spin-separation of polarization can itself
+become a source of polarization leakage.
+If the telescope barrel is not perfectly aligned with PIXIE's
+spin axis, then the beam will trace small circles in the
+sky during each spin. Any local intensity quadrupole around
+the point PIXIE is pointing at will show up as a spin-2
+modulated signal in the time-ordered data, and will hence
+be interpreted as polarization. Alternatively, the same
+thing can be happen if the barrel is correctly aligned,
+but the beam is elliptical.
+
+We investigated ellipticity-induced leakage for a
+point source in figure~\ref{fig:src_leak} and for
+a cmb + dust map in figure~\ref{fig:cmb_leak}, both
+for a highly elliptical beam with an elongation of 1.
+For each detector in isolation, the ellipticity results in a strong
+quadrupolar leakage pattern that completely dwarfs the
+intrinsic polarization. However, when combining
+detectors to make a full map this leakage is doubly canceled.
+Firstly, because the two detectors in a horn have the same
+I response but opposite polarization response, the leakage
+from each detector cancels. And secondly, the left and right
+horn also differ by an overall sign in their polarization sensitivity,
+leading to a second cancellation. All in all, I-to-P leakage
+is a third order effect in PIXIE, and is unlikely to be an
+important systemaic effect.
+
+
+%Intensity to polarization (I-to-P) leakage is a common systematic
+%in CMB experiments, but PIXIE's design makes it very robust to
+%this effect.
+%\begin{itemize}
+%	\item I-to-P leakage is rejected because it is not modulated
+%		with the telescope's spin
+%	\item The two detectors in each horn see
+%\end{itemize}
+%
+%Firstly, since the telescope measures polarization
+%via the modulation from its spin, any I-to-P leakage in its optics
+%
+%
+%\subsubsection{Barrel collimation offset}
+
+\subsubsection{Mirror jitter}
 \begin{figure}
 	\centering
 	\hspace*{-5mm}\begin{tabular}{ccc}
@@ -1071,7 +1164,7 @@ a single input pixel, compared to the expected instrument noise.
 	is shown in red,
 	and compared to the mirror speed divided by 5000. \emph{Right}:
 	The average single-pixel spectrum error caused by this jitter
-	compared to the signal, PIXIE noise and simulator/mapmaker bias.
+	compared to the signal, PIXIE noise and simulator/map-maker bias.
 	A mirror jitter of the form and magnitude simulated here would be
 	by far the largest of the systematic effects investigated in this
 	paper, and approaches (Q) or even exceeds (I) the PIXIE detector
@@ -1213,6 +1306,7 @@ a single input pixel, compared to the expected instrument noise.
 	both the detectors in a horn are mismatched \emph{and} the horns themselves are
 	mismatched. The color scale is $\pm 400$ kJy/sr in I and $\pm 500$ Jy/sr
 	in Q and U.}
+	\label{fig:cmb_leak}
 \end{figure}
 
 \end{document}
