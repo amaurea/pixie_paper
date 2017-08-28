@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{amsmath,gensymb,color,graphicx,array,authblk}
+\usepackage{amsmath,gensymb,color,graphicx,array,authblk,multirow}
 \usepackage[margin=22mm]{geometry}
 \usepackage{listings}
 \usepackage[utf8]{inputenc}
@@ -21,6 +21,7 @@
 \definecolor{deepblue}{rgb}{0,0,0.5}
 \definecolor{deepred}{rgb}{0.6,0,0}
 \definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{border}{rgb}{0.9,0.9,0.9}
 \lstset{
 	language=Python,
 	backgroundcolor=\color{white}, %%%%%%%
@@ -930,7 +931,7 @@ detectors at 256 Hz.
 	\label{fig:model}
 \end{figure}
 
-\subsection{Testing the framework}
+\subsection{Sub-pixel effects}
 \begin{figure}
 	\centering
 	\begin{tabular}{cc}
@@ -1043,7 +1044,6 @@ detectors at 256 Hz.
 	\label{fig:subpixel-spec}
 \end{figure}
 
-
 Before investigating complications from instrument imperfections,
 it's useful to benchmark the performance of the simulator
 and map-maker on noiseless, ideal data. Figure~\ref{fig:tod} shows
@@ -1068,7 +1068,7 @@ simulator and map-maker are making different assumptions about how
 the signal behaves on sub-pixel scales, and this mismatch leads
 to $\textrm{map}\rightarrow\textrm{tod}$ and $\textrm{tod}\rightarrow
 \textrm{map}$ not being exact inverses of each other. Figure~\ref{fig:iptoy}
-has a 1-dimensional toy example which demonstrates this effect.
+demonstrates this effect for a simpler 1-dimensional case.
 
 Sub-pixel errors also occur during the sample window deconvolution.
 The sample window is simulated by integrating sub-samples using
@@ -1086,149 +1086,20 @@ After removing both of these, we are left with a relative error of
 $\sim10^{-15}$, which we attribute to floating point errors.
 
 These sub-pixel effects would not have appeared if the simulator
-and map-maker both made the same assumptions about sub-pixel behavior.
-However, that would not have been a good thing, because while it's
-possible
-to make the simulator match the map-makers fourier-sub-pixels,
-the real data won't be as kind. Of course, reality is just as unlikely
-to be fourier-sub-pixel as bicubic-sub-pixel, but the mismatch between
-these two gives a good indication of the mismatch one can expect
-between the real data and the sub-pixel assumptions made in the map-maker.
+and map-maker both made the same assumptions about sub-pixel behavior,
+which would have been the case for a simpler simulator.
+That would, however, have been misleading. The real sky is neither
+fourier-interpolated nor bicubic-interpolated, and so this kind of
+sub-pixel mismatch is unavilable when analyzing actual data. The
+mismatch between fourier-interpolation and bicubic interpolation
+is not exactly the same as what one can expect for the real data,
+but it is a good approximation for it.
 
-\subsection{Instrumental effects}
-\subsubsection{Intensity to polarizaiton leakage}
-To first order, PIXIE is immune to intensity to polarization
-(I-to-P) leakage because any term sourced by I is not
-modulated as a spin-2 field as the telescope spins, and is
-therefore not classified as polarization. We confirm this
-in simulations, where even 100\% I-to-P leakage in the
-optics have no effect on the result.
-
-However, this spin-separation of polarization can itself
-become a source of polarization leakage.
-If the telescope barrel is not perfectly aligned with PIXIE's
-spin axis, then the beam will trace small circles in the
-sky during each spin. Any local intensity quadrupole around
-the point PIXIE is pointing at will show up as a spin-2
-modulated signal in the time-ordered data, and will hence
-be interpreted as polarization. Alternatively, the same
-thing can be happen if the barrel is correctly aligned,
-but the beam is elliptical.
-
-We investigated ellipticity-induced leakage for a
-point source in figure~\ref{fig:src_leak} and for
-a cmb + dust map in figure~\ref{fig:cmb_leak}, both
-for a highly elliptical beam with an elongation of 1.
-For each detector in isolation, the ellipticity results in a strong
-quadrupolar leakage pattern that completely dwarfs the
-intrinsic polarization. However, when combining
-detectors to make a full map this leakage is doubly canceled.
-Firstly, because the two detectors in a horn have the same
-I response but opposite polarization response, the leakage
-from each detector cancels. And secondly, the left and right
-horn also differ by an overall sign in their polarization sensitivity,
-leading to a second cancellation. All in all, I-to-P leakage
-is a third order effect in PIXIE, and is unlikely to be an
-important systemaic effect.
-
-
-%Intensity to polarization (I-to-P) leakage is a common systematic
-%in CMB experiments, but PIXIE's design makes it very robust to
-%this effect.
-%\begin{itemize}
-%	\item I-to-P leakage is rejected because it is not modulated
-%		with the telescope's spin
-%	\item The two detectors in each horn see
-%\end{itemize}
-%
-%Firstly, since the telescope measures polarization
-%via the modulation from its spin, any I-to-P leakage in its optics
-%
-%
-%\subsubsection{Barrel collimation offset}
-
-\subsubsection{Mirror jitter}
+\subsection{Intensity to polarizaiton leakage}
 \begin{figure}
 	\centering
-	\hspace*{-5mm}\begin{tabular}{ccc}
-		\includegraphics[height=57mm,clip,trim=0 0 5mm 0]{plots/jit_wave_noise_realization.pdf} &
-		\includegraphics[height=60mm,clip,trim=0 0 6mm 0]{plots/jitter_abs_log_log.pdf}
-	\end{tabular}
-	\caption{The effect of jitter in the mirror position. \emph{Left}:
-	We added noise consisting of a sum of 100 sine waves with random
-	periods logarithmically distributed in the range 0.25 Hz to 1000 Hz
-	with power proportional to $f^{-1}$ and a combined RMS of $1\mu
-	m\sqrt{s}$. This is a rough approximation of noise that is damped
-	on long timescales by the mirror control system and on short timescales
-	by the inertia of the mirror. An example of such a noise realization
-	is shown in red,
-	and compared to the mirror speed divided by 5000. \emph{Right}:
-	The average single-pixel spectrum error caused by this jitter
-	compared to the signal, PIXIE noise and simulator/map-maker bias.
-	A mirror jitter of the form and magnitude simulated here would be
-	by far the largest of the systematic effects investigated in this
-	paper, and approaches (Q) or even exceeds (I) the PIXIE detector
-	noise.}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\hspace*{-5mm}\begin{tabular}{cc}
-		I & Q \\
-		\includegraphics[height=80mm,clip,trim=0 0 6mm 0]{plots/spin_offset_T_abs_log_log.pdf} &
-		\includegraphics[height=80mm,clip,trim=27mm 0 0 0]{plots/spin_offset_Q_abs_log_log.pdf}
-	\end{tabular}
-	\caption{The interplay between having the barrel pointing offset
-	from the rotation axis and the spin of the fourier shift in the
-	mapmaking algorithm for I (\emph{left}) and Q (\emph{right}).
-	Normally the spin-2 shift is much more accurate than the spin-1
-	shift, as can be seen by computing the green curve with its
-	dashed counterpart (see main text for discussion). This
-	is also the case when considering only the signal from a single
-	detector (blue). Adding a 1 arcsecond barrel offset slightly
-	increases the error consistent with a $\sim 1"$ smoothing
-	of the map (orange). However, if one only looks at a single
-	detector the error increase is dramatic (magenta) for
-	the spin-2 shift in Q. This is because the spin-2 shift assumes
-	that the signal is the same after a $180\degree$ spin rotation,
-	but with a barrel offset this is not the case. To a lesser extent
-	a barrel offset also turns the local quadrupole into $I\leftrightarrow P$
-	leakage, but this term has the opposite sign for oppositely aligned
-	detectors, and hence cancels.}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\hspace*{-7mm}\begin{tabular}{m{75mm}m{75mm}}
-		\vspace*{2.0mm}\includegraphics[width=79mm]{plots/noise_oof_example.pdf} &
-			\includegraphics[width=85mm]{plots/noise_abs_log_log_wide.pdf}
-	\end{tabular}
-	\hspace*{-5mm}\begin{tabular}{m{56mm}m{54.4mm}m{56mm}}
-		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/noise_oof_sb_map_0.png} &
-		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/noise_oof_sb_map_1.png} &
-		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/noise_oof_sb_map_2.png} \\
-		\hspace{32mm}I & \hspace{32mm}Q & \hspace{32mm}U
-	\end{tabular}
-	\caption{\emph{Top left}: Example noise realization with 1/f-noise with
-		$f_\textrm{knee} = 0.1$ Hz, $\alpha=-3$ and $\sigma = 83 \sqrt{s}$
-		fW/$\textrm{m}^2$/sr per detector. This $f_\textrm{knee}$ is
-		several orders of magntiude larger PIXIE's expected value,
-		resulting in strongly non-white noise on $>10$ s time scales.
-		\emph{Top right}: The resulting noise RMS is $92 Jy/sr$ per 15 GHz
-		bin per ${1\degree}^2$ pixel in I and $128 Jy/sr$ in Q and U. These
-		numbers take into account that our actual bins are slightly smaller than
-		15 GHz, and that our pixels are slightly smaller than ${1\degree}^2$.
-		Despite the high $f_\textrm{knee}$, the resulting spectrum noise is
-		indistinguishable from white. The spectrum (and map) has been
-		rescaled to correspond to 15 months of data. \emph{Bottom}: Map
-		noise resulting from single-barrel mapmaking with this noise sim.
-		The color scale is $\pm 500$ Jy/sr. Like in the spectrum, the map noise
-		is practically white.}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\hspace*{-5mm}\begin{tabular}{rm{11mm}m{11mm}m{11mm}m{11mm}m{11mm}m{11mm}}
+	\hspace*{-5mm}\begin{tabular}{m{35mm}rm{11mm}m{11mm}m{11mm}m{11mm}m{11mm}m{11mm}}
+		\hspace*{7mm}Input beam &
 		&
 		\hspace*{5mm}Lx &
 		\hspace*{5mm}Ly &
@@ -1236,6 +1107,7 @@ important systemaic effect.
 		\hspace*{2mm}Rx+Ry &
 		\hspace*{5mm}All &
 		\hspace*{3mm}Circ \\
+		\vspace*{-11mm}\multirow{3}{*}{\includegraphics[height=43mm]{plots/ellip_beam.png}} &
 		I &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_0.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det1_crop_0.png} &
@@ -1243,6 +1115,7 @@ important systemaic effect.
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det23_crop_0.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_0.png} &
 		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_0.png} \\
+		&
 		Q &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_1.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det1_crop_1.png} &
@@ -1250,6 +1123,7 @@ important systemaic effect.
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det23_crop_1.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_1.png} &
 		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_1.png} \\
+		&
 		U &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_2.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det1_crop_2.png} &
@@ -1258,8 +1132,12 @@ important systemaic effect.
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_2.png} &
 		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_2.png}
 	\end{tabular}
-	\caption{Simulation of a highly elliptical beam with an elongation of 1
-	observing a point source with 10\% polarization in the Q direction.
+	\caption{Simulation of a highly elliptical beam with a flattening of 0.5
+	observing a point source with 10\% polarization in the Q direction. The
+	beam is built up from 5 identical, circular, guassian components
+	with FWHM of $1.9\deg$ offset
+	vertically with an interval of $0.475\deg$. \emph{Left}:
+	Map of the instantaneous beam profile, with axis units of degrees. \emph{Right}:
 	The PIXIE scanning pattern circularizes the beam efficiently, at the cost
 	of a slight increase in beam size compared to the non-elliptical case.
 	Beam ellipticity also introduces polarization leakage due to the spin-2
@@ -1269,7 +1147,7 @@ important systemaic effect.
 	when combining the signal from the two horns unless the two horns
 	have different beams. In this simulation we used an unrealistic
 	10\% mismatch between x- and y-oriented detectors in each horn, making
-	the first cancelation only 90\% efficient. The Q and U color scale is
+	the first cancellation only 90\% efficient. The Q and U color scale is
 	10\% of the I color scale here.}
 	\label{fig:src_leak}
 \end{figure}
@@ -1308,5 +1186,165 @@ important systemaic effect.
 	in Q and U.}
 	\label{fig:cmb_leak}
 \end{figure}
+To first order, PIXIE is immune to intensity to polarization
+(I-to-P) leakage because any term sourced by I is not
+modulated as a spin-2 field as the telescope spins, and is
+therefore not classified as polarization. We confirm this
+in simulations, where even 100\% I-to-P leakage in the
+optics have no effect on the result.
+
+However, this spin-separation of polarization can itself
+become a source of polarization leakage.
+If the telescope barrel is not perfectly aligned with PIXIE's
+spin axis, then the beam will trace small circles in the
+sky during each spin. Any local intensity quadrupole around
+the point PIXIE is pointing at will show up as a spin-2
+modulated signal in the time-ordered data, and will hence
+be interpreted as polarization. Alternatively, the same
+thing can be happen if the barrel is correctly aligned,
+but the beam is elliptical.
+
+We investigated ellipticity-induced leakage for a
+point source in figure~\ref{fig:src_leak} and for
+a cmb + dust map in figure~\ref{fig:cmb_leak}, both
+for a highly elliptical beam with a flattening of 0.5.
+For each detector in isolation, the ellipticity results in a strong
+quadrupolar leakage pattern that completely dwarfs the
+intrinsic polarization. However, when combining
+detectors to make a full map this leakage is doubly canceled.
+Firstly, because the two detectors in a horn have the same
+I response but opposite polarization response, the leakage
+from each detector cancels. And secondly, the left and right
+horn also differ by an overall sign in their polarization sensitivity,
+leading to a second cancellation. All in all, I-to-P leakage
+is a third order effect in PIXIE, and is unlikely to be an
+important systemaic effect.
+
+\subsection{Beam circularization}
+\begin{figure}
+	\centering
+	\fboxsep=0mm
+	\begin{tabular}{cccc}
+		Input beam & Output T & Output Q & Output U \\
+		\fcolorbox{border}{white}{\includegraphics[height=30mm]{plots/superbuddy_beam.png}} &
+		\fcolorbox{border}{white}{\includegraphics[height=30mm]{plots/superbuddy_src_0.png}} &
+		\fcolorbox{border}{white}{\includegraphics[height=30mm]{plots/superbuddy_src_1.png}} &
+		\fcolorbox{border}{white}{\includegraphics[height=30mm]{plots/superbuddy_src_2.png}}
+	\end{tabular}
+	\caption{Beam circularization failure for a multimodal input beam. Each
+	component has a FWHM of $1.9\degree$, and they are separated by $10\degree$.
+	One would expect the off-center beam component to be smoothed into a smooth
+	circle, but due to the limited amount of spin angles after orthogonalization
+	the result is a dashed circle. Additionally, the sharp angular dependence
+	of the beam results in interpolation failure during orthogonalization, which
+	is responsible for the striping in the scanning direction. This failure mode
+	is not relevant for realistic PIXIE beams.}
+	\label{fig:badbeam}
+\end{figure}
+PIXIE's spin around the boresight also circularizes the beam. In the ideal
+orthogonal case, where telescope does not scan or stroke while spinning, every
+pixel would be observed equally at every spin angle, leading to perfect
+circularization. In practice, though, we need to rely on interpolation to
+simulate an orthogonal scanning pattern, and this relies on the signal changing
+smoothly as the spin angle changes in $45\degree$ steps (since there are 8
+strokes per full spin). But a very long and thin beam could in theory sweep
+over a small feature in far shorter time than this. This would create
+complicated spatially dependent artifacts in the autocorrelation function.
+
+Furthermore, even if the orthogonalization went perfectly, it would still only
+result in 8 discrete, evenly spaced spin angles\footnote{When using
+high-resolution mapping (see panel F in figure~\ref{fig:ortho}) this reduces to
+4.} per pixel. The resulting beam is then the average over these 8
+orientations, and so would not be perfectly radially symmetric, but would
+instead have an 8-fold angular symmetry.
+
+These effects are illustrated in figure~\ref{fig:badbeam}, for a
+multimodal beam with two circular components separated by $10\degree$.
+The resulting beam is not circular, and has quite complicated sub-structure.
+
+How important are these limitations in practice? As we saw in
+figure~\ref{fig:src_leak}, even a beam with an unrealistically large
+flattening of 0.5, there is no noticable deviation from circularity in
+the output.
+
+\subsection{Mirror jitter}
+\begin{figure}
+	\centering
+	\hspace*{-5mm}\begin{tabular}{ccc}
+		\includegraphics[height=57mm,clip,trim=0 0 5mm 0]{plots/jit_wave_noise_realization.pdf} &
+		\includegraphics[height=60mm,clip,trim=0 0 6mm 0]{plots/jitter_abs_log_log.pdf}
+	\end{tabular}
+	\caption{The effect of jitter in the mirror position. \emph{Left}:
+	We added noise consisting of a sum of 100 sine waves with random
+	periods logarithmically distributed in the range 0.25 Hz to 1000 Hz
+	with power proportional to $f^{-1}$ and a combined RMS of $1\mu
+	m\sqrt{s}$. This is a rough approximation of noise that is damped
+	on long timescales by the mirror control system and on short timescales
+	by the inertia of the mirror. An example of such a noise realization
+	is shown in red,
+	and compared to the mirror speed divided by 5000. \emph{Right}:
+	The average single-pixel spectrum error caused by this jitter
+	compared to the signal, PIXIE noise and simulator/map-maker bias.
+	A mirror jitter of the form and magnitude simulated here would be
+	by far the largest of the systematic effects investigated in this
+	paper, and approaches (Q) or even exceeds (I) the PIXIE detector
+	noise.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\hspace*{-7mm}\begin{tabular}{m{75mm}m{75mm}}
+		\vspace*{2.0mm}\includegraphics[width=79mm]{plots/noise_oof_example.pdf} &
+			\includegraphics[width=85mm]{plots/noise_abs_log_log_wide.pdf}
+	\end{tabular}
+	\hspace*{-5mm}\begin{tabular}{m{56mm}m{54.4mm}m{56mm}}
+		\includegraphics[height=28mm,clip,trim=0 8mm 7.5mm 0]{plots/noise_oof_sb_map_0.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 7.5mm 0]{plots/noise_oof_sb_map_1.png} &
+		\includegraphics[height=28mm,clip,trim=7.5mm 8mm 0 0]{plots/noise_oof_sb_map_2.png} \\
+		\hspace{32mm}I & \hspace{32mm}Q & \hspace{32mm}U
+	\end{tabular}
+	\caption{\emph{Top left}: Example noise realization with 1/f-noise with
+		$f_\textrm{knee} = 0.1$ Hz, $\alpha=-3$ and $\sigma = 83 \sqrt{s}$
+		fW/$\textrm{m}^2$/sr per detector. This $f_\textrm{knee}$ is
+		several orders of magntiude larger PIXIE's expected value,
+		resulting in strongly non-white noise on $>10$ s time scales.
+		\emph{Top right}: The resulting noise RMS is $92 Jy/sr$ per 15 GHz
+		bin per ${1\degree}^2$ pixel in I and $128 Jy/sr$ in Q and U. These
+		numbers take into account that our actual bins are slightly smaller than
+		15 GHz, and that our pixels are slightly smaller than ${1\degree}^2$.
+		Despite the high $f_\textrm{knee}$, the resulting spectrum noise is
+		indistinguishable from white. The spectrum (and map) has been
+		rescaled to correspond to 15 months of data. \emph{Bottom}: Map
+		noise resulting from single-barrel mapmaking with this noise sim.
+		The color scale is $\pm 500$ Jy/sr. Like in the spectrum, the map noise
+		is practically white.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\hspace*{-5mm}\begin{tabular}{cc}
+		I & Q \\
+		\includegraphics[height=80mm,clip,trim=0 0 6mm 0]{plots/spin_offset_T_abs_log_log.pdf} &
+		\includegraphics[height=80mm,clip,trim=27mm 0 0 0]{plots/spin_offset_Q_abs_log_log.pdf}
+	\end{tabular}
+	\caption{The interplay between having the barrel pointing offset
+	from the rotation axis and the spin of the fourier shift in the
+	mapmaking algorithm for I (\emph{left}) and Q (\emph{right}).
+	Normally the spin-2 shift is much more accurate than the spin-1
+	shift, as can be seen by computing the green curve with its
+	dashed counterpart (see main text for discussion). This
+	is also the case when considering only the signal from a single
+	detector (blue). Adding a 1 arcsecond barrel offset slightly
+	increases the error consistent with a $\sim 1"$ smoothing
+	of the map (orange). However, if one only looks at a single
+	detector the error increase is dramatic (magenta) for
+	the spin-2 shift in Q. This is because the spin-2 shift assumes
+	that the signal is the same after a $180\degree$ spin rotation,
+	but with a barrel offset this is not the case. To a lesser extent
+	a barrel offset also turns the local quadrupole into $I\leftrightarrow P$
+	leakage, but this term has the opposite sign for oppositely aligned
+	detectors, and hence cancels.}
+\end{figure}
+
 
 \end{document}
