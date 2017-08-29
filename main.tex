@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{amsmath,gensymb,color,graphicx,array,authblk,multirow}
+\usepackage{amsmath,amssymb,gensymb,color,graphicx,array,authblk,multirow}
 \usepackage[margin=22mm]{geometry}
 \usepackage{listings}
 \usepackage[utf8]{inputenc}
@@ -932,6 +932,7 @@ detectors at 256 Hz.
 \end{figure}
 
 \subsection{Sub-pixel effects}
+\label{sect:subpix}
 \begin{figure}
 	\centering
 	\begin{tabular}{cc}
@@ -1098,7 +1099,7 @@ but it is a good approximation for it.
 \subsection{Intensity to polarizaiton leakage}
 \begin{figure}
 	\centering
-	\hspace*{-5mm}\begin{tabular}{m{35mm}rm{11mm}m{11mm}m{11mm}m{11mm}m{11mm}m{11mm}}
+	\hspace*{-10mm}\begin{tabular}{m{35mm}rm{11mm}m{11mm}m{11mm}m{11mm}m{11mm}m{11mm}m{20mm}}
 		\hspace*{7mm}Input beam &
 		&
 		\hspace*{5mm}Lx &
@@ -1106,7 +1107,8 @@ but it is a good approximation for it.
 		\hspace*{2mm}Lx+Ly &
 		\hspace*{2mm}Rx+Ry &
 		\hspace*{5mm}All &
-		\hspace*{3mm}Circ \\
+		\hspace*{3mm}Circ &
+		\hspace*{10mm}Detail \\
 		\vspace*{-11mm}\multirow{3}{*}{\includegraphics[height=43mm]{plots/ellip_beam.png}} &
 		I &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_0.png} &
@@ -1114,7 +1116,8 @@ but it is a good approximation for it.
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det01_crop_0.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det23_crop_0.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_0.png} &
-		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_0.png} \\
+		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_0.png} &
+		\vspace*{-6mm}\multirow{3}{*}{\includegraphics[height=40mm]{plots/circularity_low.png}} \\
 		&
 		Q &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_1.png} &
@@ -1122,7 +1125,7 @@ but it is a good approximation for it.
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det01_crop_1.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det23_crop_1.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_1.png} &
-		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_1.png} \\
+		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_1.png} & \\
 		&
 		U &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det0_crop_2.png} &
@@ -1130,14 +1133,14 @@ but it is a good approximation for it.
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det01_crop_2.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_det23_crop_2.png} &
 		\includegraphics[height=14mm]{plots/ellip_mismatch_srcs_sb_tot_crop_2.png} &
-		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_2.png}
+		\includegraphics[height=14mm]{plots/circular_srcs_sb_tot_crop_2.png} &
 	\end{tabular}
 	\caption{Simulation of a highly elliptical beam with a flattening of 0.5
 	observing a point source with 10\% polarization in the Q direction. The
 	beam is built up from 5 identical, circular, guassian components
 	with FWHM of $1.9\deg$ offset
 	vertically with an interval of $0.475\deg$. \emph{Left}:
-	Map of the instantaneous beam profile, with axis units of degrees. \emph{Right}:
+	Map of the instantaneous beam profile, with axis units of degrees. \emph{Middle}:
 	The PIXIE scanning pattern circularizes the beam efficiently, at the cost
 	of a slight increase in beam size compared to the non-elliptical case.
 	Beam ellipticity also introduces polarization leakage due to the spin-2
@@ -1148,7 +1151,15 @@ but it is a good approximation for it.
 	have different beams. In this simulation we used an unrealistic
 	10\% mismatch between x- and y-oriented detectors in each horn, making
 	the first cancellation only 90\% efficient. The Q and U color scale is
-	10\% of the I color scale here.}
+	10\% of the I color scale here. \emph{Right}: Plotting the output beam in
+	a restricted color range reveals a ringing pattern in the scan direction
+	with amplitude $2.3\cdot
+	10^{-3} r/1\degree$ relative to the beam peak,
+	where r is the distance from beam center. This also appears
+	for a circular input beam, and is a manifestation of the subsample effects
+	described in section~\ref{sect:subpix}. The ringing makes it hard to
+	quantify the amount of residual non-circularity, except by saying that it's
+	$\lesssim 2.3\cdot 10^{-3}$ of the circular component.}
 	\label{fig:src_leak}
 \end{figure}
 
@@ -1262,35 +1273,12 @@ These effects are illustrated in figure~\ref{fig:badbeam}, for a
 multimodal beam with two circular components separated by $10\degree$.
 The resulting beam is not circular, and has quite complicated sub-structure.
 
-How important are these limitations in practice? As we saw in
-figure~\ref{fig:src_leak}, even a beam with an unrealistically large
-flattening of 0.5, there is no noticable deviation from circularity in
-the output.
+How important are these limitations in practice? As we can see in
+figure~\ref{fig:src_leak}, even for a beam with an unrealistically large
+flattening of 0.5 any residual non-circularity is low enough
+that it is drowned out by sub-pixel effects.
 
-\subsection{Mirror jitter}
-\begin{figure}
-	\centering
-	\hspace*{-5mm}\begin{tabular}{ccc}
-		\includegraphics[height=57mm,clip,trim=0 0 5mm 0]{plots/jit_wave_noise_realization.pdf} &
-		\includegraphics[height=60mm,clip,trim=0 0 6mm 0]{plots/jitter_abs_log_log.pdf}
-	\end{tabular}
-	\caption{The effect of jitter in the mirror position. \emph{Left}:
-	We added noise consisting of a sum of 100 sine waves with random
-	periods logarithmically distributed in the range 0.25 Hz to 1000 Hz
-	with power proportional to $f^{-1}$ and a combined RMS of $1\mu
-	m\sqrt{s}$. This is a rough approximation of noise that is damped
-	on long timescales by the mirror control system and on short timescales
-	by the inertia of the mirror. An example of such a noise realization
-	is shown in red,
-	and compared to the mirror speed divided by 5000. \emph{Right}:
-	The average single-pixel spectrum error caused by this jitter
-	compared to the signal, PIXIE noise and simulator/map-maker bias.
-	A mirror jitter of the form and magnitude simulated here would be
-	by far the largest of the systematic effects investigated in this
-	paper, and approaches (Q) or even exceeds (I) the PIXIE detector
-	noise.}
-\end{figure}
-
+\subsection{Correlated noise}
 \begin{figure}
 	\centering
 	\hspace*{-7mm}\begin{tabular}{m{75mm}m{75mm}}
@@ -1318,6 +1306,45 @@ the output.
 		noise resulting from single-barrel mapmaking with this noise sim.
 		The color scale is $\pm 500$ Jy/sr. Like in the spectrum, the map noise
 		is practically white.}
+		\label{fig:corrnoise}
+\end{figure}
+PIXIE's detector readout is expected to have a slowly varying 1/f noise component,
+with an $f_\textrm{knee} \sim 1/\textrm{hour}$. 1/f noise usually manifests as
+correlated structures in the map, usually striping in the scanning direction.
+In PIXIE's case, though, we get a measurement of the spectrum every 7.5 seconds
+as the mirror strokes. Any signal on longer time-scales than that only contributes
+to the DC component of the autocorrelation function, which corresponds to the
+unmeasurable 0 Hz frequency bin in the spectrum. We therefore expect PIXIE's
+maps/spectra to have only white noise. To test this we simulated 1/f noise with
+power $(1+[f/f_\textrm{knee}]^\alpha)\sigma^2$, with $f_\textrm{knee} = 0.1 \textrm{Hz}$
+(hundreds of times higher than expected, but slower than the stroke frequency),
+$\alpha=-3$ and $\sigma = 83\sqrt{s} \textrm{fW}/\textrm{m}^2/\textrm{sr}$ per detector.
+As figure~\ref{fig:corrnoise} shows, this results in noise that white both
+spatially and spectrally. This confirms our expectation that correlated noise should
+not be an issue for PIXIE.
+
+\subsection{Mirror jitter}
+\begin{figure}
+	\centering
+	\hspace*{-5mm}\begin{tabular}{ccc}
+		\includegraphics[height=57mm,clip,trim=0 0 5mm 0]{plots/jit_wave_noise_realization.pdf} &
+		\includegraphics[height=60mm,clip,trim=0 0 6mm 0]{plots/jitter_abs_log_log.pdf}
+	\end{tabular}
+	\caption{The effect of jitter in the mirror position. \emph{Left}:
+	We added noise consisting of a sum of 100 sine waves with random
+	periods logarithmically distributed in the range 0.25 Hz to 1000 Hz
+	with power proportional to $f^{-1}$ and a combined RMS of $1\mu
+	m\sqrt{s}$. This is a rough approximation of noise that is damped
+	on long timescales by the mirror control system and on short timescales
+	by the inertia of the mirror. An example of such a noise realization
+	is shown in red,
+	and compared to the mirror speed divided by 5000. \emph{Right}:
+	The average single-pixel spectrum error caused by this jitter
+	compared to the signal, PIXIE noise and simulator/map-maker bias.
+	A mirror jitter of the form and magnitude simulated here would be
+	by far the largest of the systematic effects investigated in this
+	paper, and approaches (Q) or even exceeds (I) the PIXIE detector
+	noise.}
 \end{figure}
 
 \begin{figure}
