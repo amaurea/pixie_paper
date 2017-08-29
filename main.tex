@@ -1345,33 +1345,67 @@ not be an issue for PIXIE.
 	by far the largest of the systematic effects investigated in this
 	paper, and approaches (Q) or even exceeds (I) the PIXIE detector
 	noise.}
+	\label{fig:jitter}
 \end{figure}
+In PIXIE's map-making we model the interferometer path delay as
+changing at a constant rate in a triangle wave pattern. But in a
+real experiment the mirror is a physical device that cannot turn
+around instantly, and which will end up vibrating and jittering
+at some level. The exact performance that can be expected from
+the mirror is still uncertain, but it could be as much as a
+jitter in the path difference of $1\mu\textrm{m}\sqrt{\textrm{s}}$.
 
-\begin{figure}
-	\centering
-	\hspace*{-5mm}\begin{tabular}{cc}
-		I & Q \\
-		\includegraphics[height=80mm,clip,trim=0 0 6mm 0]{plots/spin_offset_T_abs_log_log.pdf} &
-		\includegraphics[height=80mm,clip,trim=27mm 0 0 0]{plots/spin_offset_Q_abs_log_log.pdf}
-	\end{tabular}
-	\caption{The interplay between having the barrel pointing offset
-	from the rotation axis and the spin of the fourier shift in the
-	mapmaking algorithm for I (\emph{left}) and Q (\emph{right}).
-	Normally the spin-2 shift is much more accurate than the spin-1
-	shift, as can be seen by computing the green curve with its
-	dashed counterpart (see main text for discussion). This
-	is also the case when considering only the signal from a single
-	detector (blue). Adding a 1 arcsecond barrel offset slightly
-	increases the error consistent with a $\sim 1"$ smoothing
-	of the map (orange). However, if one only looks at a single
-	detector the error increase is dramatic (magenta) for
-	the spin-2 shift in Q. This is because the spin-2 shift assumes
-	that the signal is the same after a $180\degree$ spin rotation,
-	but with a barrel offset this is not the case. To a lesser extent
-	a barrel offset also turns the local quadrupole into $I\leftrightarrow P$
-	leakage, but this term has the opposite sign for oppositely aligned
-	detectors, and hence cancels.}
-\end{figure}
+We simulated jitter at this level by adding noise consisting of a
+sum of 100 sine waves with random periods logarithmically distributed
+in the range 0.25 Hz to 1000 Hz with power proportional to $f^{-1}$
+and a combined RMS of $1\mu m\sqrt{s}$ to the path delay in the simulator.
+This is a rough approximation of noise that is damped on long timescales
+by the mirror control system and on short timescales by the inertia of
+the mirror. The resulting spectra are shown in figure~\ref{fig:jitter}.
+Jitter both smoothes the autocorrelation function and acts as an extra
+noise component, but as the figure shows only the latter matters for PIXIE.
+The jitter shows up as an extra white noise component in the spectra,
+and unlike the other effects we have investigated, this contribution to the
+noise is not negligible. In total intensity it is about 4 times as high as
+the expected instrument noise, while it's ``only'' about the same amplitude
+as the noise in polarization. Ensuring a low mirror jitter should be a high
+priority in the PIXIE hardware design.
+
+\section{Conclusion}
+We have developed a PIXIE time-ordered data simulator and map-maker,
+and used them to test the impact of subpixel bias, intensity to
+polarization leakage, beam ellipticity/off-axis pointing, correlated
+noise and mirror jitter. We find PIXIE to be remarkably robust against
+all these effects, with the exception of mirror jitter, which is a
+serious concern. If the jitter cannot be reduced significantly below
+$1\mu m\sqrt{s}$, then the jitter rather than detector performance
+will be the limiting factor for the instrument's sensitivity.
+
+%\begin{figure}
+%	\centering
+%	\hspace*{-5mm}\begin{tabular}{cc}
+%		I & Q \\
+%		\includegraphics[height=80mm,clip,trim=0 0 6mm 0]{plots/spin_offset_T_abs_log_log.pdf} &
+%		\includegraphics[height=80mm,clip,trim=27mm 0 0 0]{plots/spin_offset_Q_abs_log_log.pdf}
+%	\end{tabular}
+%	\caption{The interplay between having the barrel pointing offset
+%	from the rotation axis and the spin of the fourier shift in the
+%	mapmaking algorithm for I (\emph{left}) and Q (\emph{right}).
+%	Normally the spin-2 shift is much more accurate than the spin-1
+%	shift, as can be seen by computing the green curve with its
+%	dashed counterpart (see main text for discussion). This
+%	is also the case when considering only the signal from a single
+%	detector (blue). Adding a 1 arcsecond barrel offset slightly
+%	increases the error consistent with a $\sim 1"$ smoothing
+%	of the map (orange). However, if one only looks at a single
+%	detector the error increase is dramatic (magenta) for
+%	the spin-2 shift in Q. This is because the spin-2 shift assumes
+%	that the signal is the same after a $180\degree$ spin rotation,
+%	but with a barrel offset this is not the case. To a lesser extent
+%	a barrel offset also turns the local quadrupole into $I\leftrightarrow P$
+%	leakage, but this term has the opposite sign for oppositely aligned
+%	detectors, and hence cancels.}
+%\end{figure}
 
 
 \end{document}
