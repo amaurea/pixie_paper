@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{amsmath,amssymb,gensymb,color,graphicx,array,authblk,multirow}
+\usepackage{natbib,hyperref,aas_macros}
 \usepackage[margin=22mm]{geometry}
 \usepackage{listings}
 \usepackage[utf8]{inputenc}
@@ -59,13 +60,70 @@
 	that PIXIE is robust to all of these effects, with the exception
 	of mirror jitter which could become the dominant source of noise
 	in the experiment if the jitter is not kept significantly below
-	$1\mu m\sqrt{s}$.
+	$1\mu m\sqrt{s}$. Source code is available at \url{https://github.com/amaurea/pixie}.
 \end{abstract}
 
 \section{Introduction}
+In 1989 the COBE experiment fielded two instrument that would revolutionize the
+study of the cosmic microwave background (CMB): the differential microwave
+radiometer (DMR), which provided the first measurement of the angular power
+spectrum; and the far-infrared absolute spectrophotometer (FIRAS), which
+measured its frequency spectrum and showed it to be blackbody to exquisite
+precision. Since then DMR has been succeeded by a large number of experiments
+that have improved the angular power spectrum by several orders of magnitude
+both in sensitivity and angular resolution. However, the nearly 30 year old
+FIRAS result remains our best measurement of the CMB frequency spectrum.
+
+The primordial inflation explorer (PIXIE) is a proposed successor to FIRAS,
+with $\sim 1000$ times higher sensitivity, polarization support, 4 times
+higher angular resolution and reduced systematics.
+It would provide $1.6\degree$ FWHM full-sky maps in Stokes I, Q and U parameters
+in 480 frequency channels from 15 GHz to 7 THz (though it would be noise dominated
+beyond ca. 4 THz) to a depth of $70n\textrm{K}\degree$ after 4 years of integration
+\citep{pixie2011}. This corresponds to providing a frequency spectrum 10 times more
+sensitive than FIRAS CMB monopole spectrum in each $1\degree$ pixel of the sky.
+That is sufficient to constrain the spectral distortion parameters to $\mu < 10^{-8}$
+(probing the ultra-small-scale primordial power spectrum and exotic pre-recombination
+particle decay) and $y < 2\cdot 10^{-9}$; to measure the optical depth at reionization
+to $\sigma(\tau) = 0.002$ (essential for getting a robust neutrino mass measurement);
+and to measure the tensor-to-scalar ratio to $\sigma(r) = 6\cdot 10^{-4}$ \citep{pixie-s4}.
+And crucially, PIXIE's dense and broad frequency coverage would allow for robust
+foreground separation (especially dust).
+
+To make use of these huge increases in sensitivity, a corresponding reduction in
+systematic errors is needed. PIXIE's systematics were studied in detail by
+\citet{pixie-systematics}, who concluded that any residual errors after corrections
+would be at the sub nK level, far below the instrumental noise. However, so far
+no end-to-end simulations of PIXIE have been performed.
+
+We here present a python-based time-ordered data simulator and map-maker for PIXIE,
+and use them to make PIXIE spectral sky maps. We then use this framework to
+study the impact of some of the relevant systematic effects.
 
 \section{The PIXIE fourier transform spectrometer}
-PIXIE has two barrels, A and B. We can expand the electric field $\vec E^A(t)$,
+\begin{figure}
+	\centering
+	\includegraphics[angle=90,width=170mm]{plots/optics_ex1.pdf}
+	\caption{PIXIE optics example. Monochromatic pure vertical polarization (red) enters barrel
+	A at the left side of the figure. It passes through the vertical polarizer A
+	unmolested, but is split into two different linear combinations of vertical
+	and horizontal (blue) polarization at the diagonal polarizer B. It then encounters
+	the moving mirror, which in this example slightly retards the top optial path.
+	The rays are combined in the next diagonal polarizer C, but due to the
+	phase delay the horizontal polarization does not fully cancel. The vertical
+	polarization is correspondingly lower. The final vertical polarizer (D)
+	sends the vertical/horizontal polarization to horn L/R respectively.
+	If the mirror displacement were zero, all radiation entering barrel A/B
+	would end up in horn L/R.}
+	\label{fig:fts}
+\end{figure}
+PIXIE's optics are illustrated in figure~\ref{fig:fts}. They consist
+of two fourier transform spectrometers (FTS), labeled ``A'' and ``B'' here,
+each with its own opening (``barrel'') towards either the sky or a reference
+blackbody. The two barrels are collimated, and the interferometers are coupled
+in a total-intensity-nulling configuration \citep{pixie2011}.
+
+We can expand the electric field $\vec E^A(t)$,
 $\vec E^B(t)$ that enters these barrels in terms of Jones vectors as
 \begin{align}
 	\vec E^A(t) &= \Re \int_0^\infty d\omega \Big(\J^A_x(\omega)\vec e_x +
@@ -119,22 +177,6 @@ the left (L) and right (R) feedhorns.
 		&= \big[\J^B_x\cos(\omega\Delta t/2) + i\J^A_y\sin(\omega\Delta t/2)\big]\vec e_x
 		+  \big[\J^B_y\cos(\omega\Delta t/2) - i\J^A_x\sin(\omega\Delta t/2)\big]\vec e_y
 \end{align}
-
-\begin{figure}
-	\centering
-	\includegraphics[angle=90,width=170mm]{plots/optics_ex1.pdf}
-	\caption{PIXIE optics example. Monochromatic pure vertical polarization (red) enters barrel
-	A at the left side of the figure. It passes through the vertical polarizer A
-	unmolested, but is split into two different linear combinations of vertical
-	and horizontal (blue) polarization at the diagonal polarizer B. It then encounters
-	the moving mirror, which in this example slightly retards the top optial path.
-	The rays are combined in the next diagonal polarizer C, but due to the
-	phase delay the horizontal polarization does not fully cancel. The vertical
-	polarization is correspondingly lower. The final vertical polarizer (D)
-	sends the vertical/horizontal polarization to horn L/R respectively.
-	If the mirror displacement were zero, all radiation entering barrel A/B
-	would end up in horn L/R.}
-\end{figure}
 
 \subsection{Stokes parameters}
 \label{s:stokes}
@@ -723,23 +765,6 @@ relaxed in the future.
 
 \subsection{Orthogonalization}
 \label{sect:ortho}
-It would have been very convenient if the stroke, spin and scan motions were
-orthogonal, so that the telescope didn't spin during a stroke and didn't scan
-during a spin. That would allow us to demodulate each of them independently.
-Rather than have stroke, spin and pointing change smoothly during each scan
-we would have $P_\textrm{scan}$ pointings (corresponding
-to our output pixels), each with
-$P_\textrm{spin}$ spin angles measured, and for each
-of those $N_\textrm{delay}$ mirror positions.
-
-Figure~\ref{fig:shift} illustrates the situation. In the 3-dimensional
-space of latitude, spin angle and mirror position (corresponding to the
-horizontal, vertical and color axis in the figure), the scanning pattern
-traces out a skewed grid (A) instead of the orthogonal grid
-that would be convenient (E). However, as long as our signal is well-sampled
-in all directions in the grid we can use the samples we have to
-interpolate to orthogonal grid we wish we had.
-
 \begin{figure}
 	\centering
 	\begin{tabular}{ccc}
@@ -784,6 +809,22 @@ interpolate to orthogonal grid we wish we had.
 	180\degree$ interval in spin angle.}
 	\label{fig:shift}
 \end{figure}
+It would have been very convenient if the stroke, spin and scan motions were
+orthogonal, so that the telescope didn't spin during a stroke and didn't scan
+during a spin. That would allow us to demodulate each of them independently.
+Rather than have stroke, spin and pointing change smoothly during each scan
+we would have $P_\textrm{scan}$ pointings (corresponding
+to our output pixels), each with
+$P_\textrm{spin}$ spin angles measured, and for each
+of those $N_\textrm{delay}$ mirror positions.
+
+Figure~\ref{fig:shift} illustrates the situation. In the 3-dimensional
+space of latitude, spin angle and mirror position (corresponding to the
+horizontal, vertical and color axis in the figure), the scanning pattern
+traces out a skewed grid (A) instead of the orthogonal grid
+that would be convenient (E). However, as long as our signal is well-sampled
+in all directions in the grid we can use the samples we have to
+interpolate to orthogonal grid we wish we had.
 
 We start by undoing the effect of the scan motion during each scan (and stroke)
 by splitting our samples into groups with the same spin angle and mirror position.
@@ -1309,10 +1350,10 @@ that it is drowned out by sub-pixel effects.
 		\label{fig:corrnoise}
 \end{figure}
 PIXIE's detector readout is expected to have a slowly varying 1/f noise component,
-with an $f_\textrm{knee} \sim 1/\textrm{hour}$. 1/f noise usually manifests as
-correlated structures in the map, usually striping in the scanning direction.
+with an $f_\textrm{knee} \sim 1/\textrm{hour}$ or longer. 1/f noise usually manifests as
+correlated structures in the map, for example striping in the scanning direction.
 In PIXIE's case, though, we get a measurement of the spectrum every 7.5 seconds
-as the mirror strokes. Any signal on longer time-scales than that only contributes
+as the mirror strokes. As long as it is purely additive, any signal on longer time-scales than that only contributes
 to the DC component of the autocorrelation function, which corresponds to the
 unmeasurable 0 Hz frequency bin in the spectrum. We therefore expect PIXIE's
 maps/spectra to have only white noise. To test this we simulated 1/f noise with
@@ -1320,8 +1361,8 @@ power $(1+[f/f_\textrm{knee}]^\alpha)\sigma^2$, with $f_\textrm{knee} = 0.1 \tex
 (hundreds of times higher than expected, but slower than the stroke frequency),
 $\alpha=-3$ and $\sigma = 83\sqrt{s} \textrm{fW}/\textrm{m}^2/\textrm{sr}$ per detector.
 As figure~\ref{fig:corrnoise} shows, this results in noise that white both
-spatially and spectrally. This confirms our expectation that correlated noise should
-not be an issue for PIXIE.
+spatially and spectrally. This confirms our expectation that (additive) correlated
+noise should not be an issue for PIXIE.
 
 \subsection{Mirror jitter}
 \begin{figure}
@@ -1407,5 +1448,7 @@ will be the limiting factor for the instrument's sensitivity.
 %	detectors, and hence cancels.}
 %\end{figure}
 
+\bibliographystyle{act}
+\bibliography{refs}
 
 \end{document}
