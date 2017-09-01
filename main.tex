@@ -335,8 +335,8 @@ we model the time-ordered data as
 where $i$ is the sample index, $B$ is the bandpass filter, $\Delta t$ is the sample
 interval and $\vec n_i$ is the noise in sample $i$. We implement this
 sample integral by using Gaussian quadrature with $N_\textrm{sub}$ sub-samples,
-with a typical value of $N_\textrm{sub}$ being 9. See section~\ref{s:accuracy}
-for a discussion of the effect of the number of sub-samples.
+with a typical value of $N_\textrm{sub}$ being 9.
+%See section~\ref{s:accuracy} for a discussion of the effect of the number of sub-samples.
 
 For the bandpass filter we used a Butterworth bandpass filter.
 \begin{align}
@@ -672,7 +672,7 @@ intensity and leakage properties.
 \subsection{Simulator pseudo-python}
 The full source code of the simulator can be found in the
 classes \texttt{OpticsSim} and \texttt{ReadoutSim} in
-\texttt{pixie.py} in \cite{pixie_repo}, but the
+\texttt{pixie.py} in \url{https://github.com/amaurea/pixie}, but the
 overall logic is summarized in the pseudo-code below.
 \begin{lstlisting}
 for each barrel, beam:
@@ -807,7 +807,7 @@ relaxed in the future.
 	shorten the interpolation distance and decrease the pixel size
 	by mapping the $180\degree-360\degree$ interval to the $0\degree-
 	180\degree$ interval in spin angle.}
-	\label{fig:shift}
+	\label{fig:ortho}
 \end{figure}
 It would have been very convenient if the stroke, spin and scan motions were
 orthogonal, so that the telescope didn't spin during a stroke and didn't scan
@@ -818,7 +818,7 @@ to our output pixels), each with
 $P_\textrm{spin}$ spin angles measured, and for each
 of those $N_\textrm{delay}$ mirror positions.
 
-Figure~\ref{fig:shift} illustrates the situation. In the 3-dimensional
+Figure~\ref{fig:ortho} illustrates the situation. In the 3-dimensional
 space of latitude, spin angle and mirror position (corresponding to the
 horizontal, vertical and color axis in the figure), the scanning pattern
 traces out a skewed grid (A) instead of the orthogonal grid
@@ -903,7 +903,7 @@ real and imaginary part of the 2nd Fourier mode.
 \subsection{Mapmaker pseudo-python}
 The full source code of the map-maker can be found in the
 programs \texttt{tod2ring.py} and \texttt{ring2map.py} in
-\cite{pixie_repo}, but the overall logic is summarized in
+\url{https://github.com/amaurea/pixie}, but the overall logic is summarized in
 the pseudo-code below.
 \begin{lstlisting}
 map  = zeros([nfreq,{I,Q,U},nlat,nlon])
