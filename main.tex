@@ -60,7 +60,7 @@
 	that PIXIE is robust to all of these effects, with the exception
 	of mirror jitter which could become the dominant source of noise
 	in the experiment if the jitter is not kept significantly below
-	$1\mu m\sqrt{s}$. Source code is available at \url{https://github.com/amaurea/pixie}.
+	$0.1\mu m\sqrt{s}$. Source code is available at \url{https://github.com/amaurea/pixie}.
 \end{abstract}
 
 \section{Introduction}
@@ -349,7 +349,12 @@ For the bandpass filter we used a Butterworth bandpass filter.
 PIXIE will orbit at the Sun-Earth L2 point, placing it in the ecliptic, with
 a heliocentric ecliptic latitude $b=0$ and longitude $l=l_0 +
 360\degree\frac{t-t_0}{T_\textrm{orbit}}$ with $T_\textrm{orbit} = 1\textrm{year}$.
-As it orbits it scans great circles
+As it orbits it scans great circles\footnote{
+Getting sufficient sun shielding might require the opening angle of the scan
+to be smaller than $180\degree$. This would make the scans small circles instead.
+This would result in 1. the ecliptic poles no longer being covered, and 2. the
+\texttt{add\_to\_sky} operation in section~\ref{sect:mapmaker} would be
+somewhat more complicated. Aside from that, nothing changes.}
 perpendicular to the direction towards the sun, with a linearly increasing scan angle
 $\alpha_\textrm{scan} = \alpha_{\textrm{scan},0} + 360\degree \frac{t-t_0}{T_\textrm{scan}}$.
 To form an actual great circle the scan axis does not
@@ -776,7 +781,7 @@ relaxed in the future.
 		\includegraphics[width=0.32\textwidth]{plots/shift4.pdf}
 	\end{tabular}
 	\caption{Orthogonalization of the scan, spin and stroke
-	motions. PIXIE scans in great circles on the sky, so the
+	motions. PIXIE scans in circles on the sky, so the
 	signal is periodic during a scan. It also spins and strokes.
 	In isolation the signal would also be a periodic function
 	of the spin angle and mirror stroke position, but because
@@ -901,6 +906,7 @@ which is simply the gain-correct 0th Fourier mode and
 real and imaginary part of the 2nd Fourier mode.
 
 \subsection{Mapmaker pseudo-python}
+\label{sect:mapmaker}
 The full source code of the map-maker can be found in the
 programs \texttt{tod2ring.py} and \texttt{ring2map.py} in
 \url{https://github.com/amaurea/pixie}, but the overall logic is summarized in
@@ -1344,7 +1350,7 @@ that it is drowned out by sub-pixel effects.
 		Despite the high $f_\textrm{knee}$, the resulting spectrum noise is
 		indistinguishable from white. The spectrum (and map) has been
 		rescaled to correspond to 15 months of data. \emph{Bottom}: Map
-		noise resulting from single-barrel mapmaking with this noise sim.
+		noise resulting from single barrel mapmaking with this noise sim.
 		The color scale is $\pm 500$ Jy/sr. Like in the spectrum, the map noise
 		is practically white.}
 		\label{fig:corrnoise}
@@ -1368,24 +1374,26 @@ noise should not be an issue for PIXIE.
 \begin{figure}
 	\centering
 	\hspace*{-5mm}\begin{tabular}{ccc}
-		\includegraphics[height=57mm,clip,trim=0 0 5mm 0]{plots/jit_wave_noise_realization.pdf} &
-		\includegraphics[height=60mm,clip,trim=0 0 6mm 0]{plots/jitter_abs_log_log.pdf}
+		\includegraphics[height=57mm,clip,trim=0 0 5mm 0]{plots/jit_wave_noise_realization_30nm.pdf} &
+		\includegraphics[height=60mm,clip,trim=0 0 6mm 0]{plots/jitter_sb_30nm_abs_log_log.pdf}
 	\end{tabular}
 	\caption{The effect of jitter in the mirror position. \emph{Left}:
 	We added noise consisting of a sum of 100 sine waves with random
 	periods logarithmically distributed in the range 0.25 Hz to 1000 Hz
-	with power proportional to $f^{-1}$ and a combined RMS of $1\mu
-	m\sqrt{s}$. This is a rough approximation of noise that is damped
+	with power proportional to $f^{-1}$ and a combined RMS of $30 nm\sqrt{s}$.
+	This is a rough approximation of noise that is damped
 	on long timescales by the mirror control system and on short timescales
 	by the inertia of the mirror. An example of such a noise realization
 	is shown in red,
-	and compared to the mirror speed divided by 5000. \emph{Right}:
+	and compared to the mirror average displacement per second divided by $10^5$.
+	\emph{Right}:
 	The average single-pixel spectrum error caused by this jitter
 	compared to the signal, PIXIE noise and simulator/map-maker bias.
 	A mirror jitter of the form and magnitude simulated here would be
-	by far the largest of the systematic effects investigated in this
-	paper, and approaches (Q) or even exceeds (I) the PIXIE detector
-	noise.}
+	the largest of the systematic effects investigated in this
+	paper, in I approaches the PIXIE detector
+	noise. This plot is for single barrel mode, but the jitter noise
+	curve in polarization is the same in double barrel mode.}
 	\label{fig:jitter}
 \end{figure}
 In PIXIE's map-making we model the interferometer path delay as
@@ -1393,23 +1401,41 @@ changing at a constant rate in a triangle wave pattern. But in a
 real experiment the mirror is a physical device that cannot turn
 around instantly, and which will end up vibrating and jittering
 at some level. The exact performance that can be expected from
-the mirror is still uncertain, but it could be as much as a
-jitter in the path difference of $1\mu\textrm{m}\sqrt{\textrm{s}}$.
+the mirror is still uncertain, but according to \citet{pixie-systematics},
+a jitter in the path difference of $\sim 30 \textrm{nm}\sqrt{\textrm{s}}$ has been
+achieved.
 
 We simulated jitter at this level by adding noise consisting of a
 sum of 100 sine waves with random periods logarithmically distributed
 in the range 0.25 Hz to 1000 Hz with power proportional to $f^{-1}$
-and a combined RMS of $1\mu m\sqrt{s}$ to the path delay in the simulator.
+and a combined RMS of $30 nm\sqrt{s}$ to the path delay in the simulator.
 This is a rough approximation of noise that is damped on long timescales
 by the mirror control system and on short timescales by the inertia of
 the mirror. The resulting spectra are shown in figure~\ref{fig:jitter}.
 Jitter both smoothes the autocorrelation function and acts as an extra
-noise component, but as the figure shows only the latter matters for PIXIE.
+noise component, but as the figure shows the latter dominates for PIXIE.
+
 The jitter shows up as an extra white noise component in the spectra,
 and unlike the other effects we have investigated, this contribution to the
-noise is not negligible. In total intensity it is about 4 times as high as
-the expected instrument noise, while it's ``only'' about the same amplitude
-as the noise in polarization. Ensuring a low mirror jitter should be a high
+noise is not negligible. In total intensity it is about half as as high as
+the expected instrument noise, while it's about two orders of magnitude
+below the noise in polarization. The jitter level at which the jitter noise
+and instrument noise are equal are $0.10 \mu\textrm{m}\sqrt{\textrm{s}}$
+for I,  $2.2\mu\textrm{m}\sqrt{\textrm{s}}$ for P (single barrel) and
+$3.1\mu\textrm{m}\sqrt{\textrm{s}}$ for P (double barrel).
+
+One might hope that double barrel mode would
+be less affected by jitter noise, as it cancels the huge total intensity signal, and hence
+could prevent it from contributing to this noise term. However,
+the opposite polarizaion sign for the two detectors in each horn cancels
+the total intensity contribution to the polarization jitter noise even in
+single barrel mode. Mirror jitter is therefore approximately as important in double
+barrel mode\footnote{Double barrel mode is more robust to I-to-P leakage,
+so in the presence of uncancelled I-to-P leakage, the single barrel polarization
+jitter noise would increase above the level indicated in figure~\ref{fig:jitter},
+while the double barrel jitter noise would stay as it is. So in that case double
+barrel mode would be an improvement.}.
+Ensuring a low mirror jitter should be a high
 priority in the PIXIE hardware design.
 
 \section{Conclusion}
@@ -1418,9 +1444,9 @@ and used them to test the impact of subpixel bias, intensity to
 polarization leakage, beam ellipticity/off-axis pointing, correlated
 noise and mirror jitter. We find PIXIE to be remarkably robust against
 all these effects, with the exception of mirror jitter, which is a
-serious concern. If the jitter cannot be reduced significantly below
-$1\mu m\sqrt{s}$, then the jitter rather than detector performance
-will be the limiting factor for the instrument's sensitivity.
+potential concern. At jitter levels above $0.10 \mu\textrm{m}\sqrt{\textrm{s}}$
+for I or $3.1\mu\textrm{m}\sqrt{\textrm{s}}$ for P, the jitter rather
+than detector performance becomes the limiting factor for the instrument's sensitivity.
 
 %\begin{figure}
 %	\centering
@@ -1448,7 +1474,7 @@ will be the limiting factor for the instrument's sensitivity.
 %	detectors, and hence cancels.}
 %\end{figure}
 
-\bibliographystyle{act}
+\bibliographystyle{act_titles}
 \bibliography{refs}
 
 \end{document}
