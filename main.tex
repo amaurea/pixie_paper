@@ -15,6 +15,7 @@
 \newcommand{\U}{\tilde U}
 \newcommand{\V}{\tilde V}
 \newcommand{\J}{{\tilde E}}
+\renewcommand{\vec}[1]{{\bf #1}}
 
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{9} % for bold
 \DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{9}  % for normal
@@ -117,14 +118,44 @@ study the impact of some of the relevant systematic effects.
 	would end up in horn L/R.}
 	\label{fig:fts}
 \end{figure}
-PIXIE's optics are illustrated in figure~\ref{fig:fts}. They consist
-of two fourier transform spectrometers (FTS), labeled ``A'' and ``B'' here,
-each with its own opening (``barrel'') towards either the sky or a reference
-blackbody. The two barrels are collimated, and the interferometers are coupled
-in a total-intensity-nulling configuration \citep{pixie2011}.
+Unlike most CMB experiments, but like FIRAS, PIXIE does not use a
+large number of detectors and frequency filters to mesure the
+frequency spectrum. Instead it splits the incoming radiation into
+two paths, introduces a variable delay between them, and then lets them
+interfere with each other. For each delay used, this results in
+a measurement of the radiation's autocorrelation function, which
+once mapped out can be fourier transformed to recover the frequency
+spectrum. This indirect way of measuring the spectrum is called
+a fourier transform spectrometer (FTS).
+
+To improve the dynamic
+range PIXIE uses two FTSes (labeled ``A'' and ``B'' in the following)
+each with its own opening (``barrel'') towards either the sky or a
+reference blackbody. The two barrels are collimated, and the
+interferometers are coupled in a total-intensity-nulling configuration.
+The situation is illustrated in figure~\ref{fig:fts}.
+
+The barrels are operated in one of two modes:
+In \emph{single-barrel mode} one barrel is
+exposed to the sky while the other is covered by a 2.725 K calibrator
+\citep{pixie2011}.
+This cancels the contribution from the CMB monopole, leaving the
+3 orders of magnitude smaller dipole as the dominant signal.
+In \emph{double-barrel mode} both barrels are exposed to the sky.
+In this case the entire total intensity signal is canceled, and
+only the much weaker polarization signal is left.
+In either case, the nulling greatly reduces the amplitude of the
+modulated signal that reaches the detectors. Many systematic effects
+are proportional to the total signal, and are therefore similarly
+reduced by this technique.
+
+To be able to simulate PIXIE observations, we need to know how
+the power incident on its detectors relates to the incoming radiation.
+This was done in \cite{pixie2011}, but is repeated here in more detail
+for convenience.
 
 We can expand the electric field $\vec E^A(t)$,
-$\vec E^B(t)$ that enters these barrels in terms of Jones vectors as
+$\vec E^B(t)$ that enters PIXIE's barrels in terms of Jones vectors as
 \begin{align}
 	\vec E^A(t) &= \Re \int_0^\infty d\omega \Big(\J^A_x(\omega)\vec e_x +
 		\J^A_y(\omega)\vec e_y\Big) e^{i(kz-\omega t)} \notag \\
@@ -179,7 +210,7 @@ the left (L) and right (R) feedhorns.
 \end{align}
 
 \subsection{Stokes parameters}
-\label{s:stokes}
+\label{sect:stokes}
 After passing through all this, the light enters the feedhorns and
 hits the detectors. The power deposited here can be decomposed into
 Stokes parameters\footnote{The quantities with tildes are for a single plane wave.
@@ -238,7 +269,7 @@ so they observe the same wavefront entering. As PIXIE's angular resolution is
 not infinite it is sensitive to wavefronts that are off-axis by a few degrees.
 Light arriving from direction $\hat n$ will hit Barrel B a time
 $\tau = \hat n \cdot \vec b / c$ before barrel A, where $\vec b$ is the distance vector from
-barrel A to barrel B, and $c$ is the speed of light (see~\cite{pixie_array}).
+barrel A to barrel B, and $c$ is the speed of light (see~\citet[appendix]{pixie-systematics}).
 So in this case $\vec \J^B = \gamma \vec\J^A$ with $\gamma = e^{-i\omega\tau}$.
 \begin{align}
 	\I^L &= \I^A+\V^A\cos(\omega\tau)\sin(\omega\Delta t) &
@@ -421,7 +452,9 @@ $\alpha_\textrm{eclip}$ and $\alpha_\textrm{open}$, which represent the
 offset of PIXIE's orbital plane from the ecliptic and the opening angle
 offset (to support non-great-circle scans), both of which are fiducially 0.
 $R_y(\theta)$ and $R_z(\theta)$ are rotations around the $y$ and $z$ axes
-by an angle $\theta$.
+by an angle $\theta$\footnote{In ecliptic coordinates $z$ represents the
+zenith and $x$ the zero longitude direction. In barrel coordinates, $z$
+represents the fiducial barrel pointing.}
 
 $R_\textrm{tot}$ encodes both the sky coordinates and polarization rotation.
 \begin{align}
@@ -450,12 +483,12 @@ As PIXIE observes the sky it mesures the autocorrelation function of the
 radiation coming from the points it scans past. To simulate the PIXIE signal
 we therefore need to be able to evaluate the I, Q and U autocorrelation
 functions
-\footnote{We're ignoring V polarization here. See section~\ref{s:stokes}.}
+\footnote{We're ignoring V polarization here. See section~\ref{sect:stokes}.}
 at an arbitrary point $\hat p$ on the sky for an arbitrary phase
 delay $\Delta t$ for each component that makes up the sky (CMB, dust, etc.).
 
 \subsection{Precomputing the autocorrelation function as a data cube}
-\label{s:autocorr-problems}
+\label{sect:autocorr-problems}
 A straightforward and general way of doing this would be to precompute the
 full-sky autocorrelation function:
 \begin{enumerate}
@@ -518,7 +551,12 @@ precomputed autocorrelation function. This is done differently for each sky comp
 
 \subsubsection{CMB}
 \label{sect:cmb}
-Taking into account the instrument's frequency response $\rho(\nu)$, PIXIE
+Taking into account the instrument's frequency response $\rho(\nu)$, which
+we model as $\rho(\nu) = e^{-\left[\frac{\nu}{1.5\textrm{THz}}\right]^2}$
+\footnote{PIXIE's frequency response is limited above 1-2 THz by the
+roughness of the mirrors. This serves to band-limit the signal
+so that we don't get aliasing from frequencies above the instrument's
+Nyquist frequency of 7 THz.}, PIXIE
 observes the CMB with the spectrum
 \begin{align}
 I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= \rho(\nu)B_\nu(\nu, T(\hat p)) = \frac{2h\nu^3\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{kT(\hat p)}} - 1}
@@ -581,7 +619,7 @@ T,E,B and $\phi$ spherical harmonics coefficients from a typical CMB power spect
 as output by CAMB\footnote{The spectrum used is provided in the file \code{
 	inputs/cl\_lensinput.dat}.} and projecting them on a sky with $0.1\degree$
 pixels in equirectangular (CAR) projection using the \code{libsharp} Spherical
-Harmonics Transform library \cite{libsharp}. The lensing potential $\phi$ was then used to
+Harmonics Transform library \citet{libsharp}. The lensing potential $\phi$ was then used to
 lens the T, Q and U maps. We then added the 2.725 K CMB monopole to the T
 component before doppler boosting the sky\footnote{$\beta=0.0012301$ towards
 ecliptic coordinates $l=171.646$, $b=-11.141$.}
@@ -624,14 +662,10 @@ but other components such as synchrotron, free-free, CO, AME, etc. can be implem
 in a similar vein as above, as long as they can be approximated as a sum of
 constant-spectral-shape components or can be Taylor-expanded to sufficient accuracy.
 
-\subsubsection{The PIXIE frequency response}
-PIXIE's frequency response is limited above 1-2 THz by the roughness of the mirrors.
-We model this as $\rho(\nu) = e^{-\left[\frac{\nu}{1.5\textrm{THz}}\right]^2}$.
-
 \section{Beams and sidelobes}
 PIXIE's beam will be approximately frequency-independent and approximately
 top-hat shaped, but we will here approximate it with a Gaussian
-with a FWHM of $1.9\degree$. As discussed in section~\ref{s:autocorr-problems},
+with a FWHM of $1.9\degree$. As discussed in section~\ref{sect:autocorr-problems},
 a frequency-independent beam is much cheaper to implement than a frequency-dependent
 one as long as the spectrum maps are linear functions of a small number of input
 maps. For our dust model this is simple - the spectrum is proportional
@@ -942,17 +976,22 @@ map /= hits
 output(map)
 \end{lstlisting}
 
-\section{Results}
-We generated a simple two-component CMB + dust sky model as described in
-section~\ref{sect:cmb}-\ref{sect:dust}. A 58 GHz slice of this
-model can be seen in figure~\ref{fig:model}. We then simulated
-scanning across this model with the accelerated scanning pattern
-described in section~\ref{sec:pointing}, which would result in 384
-scans per orbit.
-However, since the scans are great circles, only half an orbit
-is needed to cover the whole sky. Our simulations therefore consist
-of 192 scans, each consisting of 5898240 samples for each of 4
-detectors at 256 Hz.
+\section{Performance}
+The software was tested on the Scinet GPC cluster. On a typical node
+with an 8-core Intel Xeon 2.5 GHz processor the simulator has a run time of
+about $T_\textrm{sim} = 81 s \cdot N_\textrm{scan} N_\textrm{sub} / N_\textrm{core}$,
+and the map-maker has $T_\textrm{map} = 23 s \cdot N_\textrm{scan} / N_\textrm{core}$.
+A 192-scan run with 9 subsamples per sample, like the ones used in this article
+therefore takes about 40 CPU-hours. The full PIXIE scanning pattern, with 1369.7 scans
+per year, would take 286 CPU-hours per simulated year.
+
+The large speed difference between the simulator and map-maker is partially due to
+the overhead from high spatial and spectral resolution simulations, which are necessary
+for investigating sub-pixel and sub-sample biases. If one is not interested in
+these, then disabling pixel window integration results in a factor $\sim 7$ speedup.
+Further speedups would be possible in a simulator that operates at the same spatial
+and spectral resolution as the final maps, such as the spectral cube design needed
+for spatially and spectrally varying beams (see section~\ref{sect:autocorr-problems}).
 
 \begin{figure}
 	\centering
@@ -978,8 +1017,46 @@ detectors at 256 Hz.
 	\label{fig:model}
 \end{figure}
 
-\subsection{Sub-pixel effects}
-\label{sect:subpix}
+
+\section{Results}
+\label{sect:results}
+We generated a simple two-component CMB + dust sky model as described in
+section~\ref{sect:cmb}-\ref{sect:dust}. A 58 GHz slice of this
+model can be seen in figure~\ref{fig:model}. We then simulated
+scanning across this model with the accelerated scanning pattern
+described in section~\ref{sec:pointing}, which would result in 384
+scans per orbit.
+However, since the scans are great circles, only half an orbit
+is needed to cover the whole sky. Our simulations therefore consist
+of 192 scans, each consisting of 5898240 samples for each of 4
+detectors at 256 Hz.
+
+Figure~\ref{fig:tod} shows an example of what the time-ordered
+data looks like on various time scales, here for a noiseless
+single detector, in both single and double barrel mode. The
+stroke and spin modulation makes the TOD quite different from
+that of standard CMB experiments, which have a smoothly varying
+signal on short time scales.
+
+Figure~\ref{fig:spatbias} shows the
+corresponding maps we get after running these simulated scans
+through the mapmaker, compared to the input model at 58 GHz
+evaluated at the center of each pixel. Even under these idealized
+conditions the residual is not zero, though it is small: ~500 mJy/sr for
+dust and much less for the CMB in T, compared to the ~100 MJy/sr
+CMB monopole; and ~5 mJy/sr in P, compared to 200 Jy/sr for the signal.
+This represents a $-83 \textrm{dB}$ error in T and $-46
+\textrm{dB}$ in P.
+Figure~\ref{fig:specbias} shows the signal and bias spectra for
+a single input pixel, compared to the expected instrument noise.
+These deviations are due to subsample effects, and would also
+be expected when analyzing real data. See appendix~\ref{sect:subpix}
+for details, but for now it suffices to note that these biases
+are many orders of magnitude smaller than the instrument noise floor.
+
+With that out of the way, we can look at the effect of some
+common and less common instrument inperfections on PIXIE's
+performance.
 \begin{figure}
 	\centering
 	\begin{tabular}{cc}
@@ -1032,25 +1109,6 @@ detectors at 256 Hz.
 
 \begin{figure}
 	\centering
-	\hspace*{-13mm}\begin{tabular}{m{59mm}m{59mm}m{59mm}}
-		\hspace{30mm}Input & \hspace{20mm}Interpolations & \hspace{30mm}Residual \\
-		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_input.pdf} &
-		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_interpol.pdf} &
-		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_residual.pdf}
-	\end{tabular}
-	\caption{1-dimensional toy example of sub-pixel mismatch bias.
-	\emph{Left}: The input data set, which is a densely sampled sine wave with
-	25 points per wavelength. \emph{Middle}: Two models for the sub-pixel behavior
-	of the data set (fourier and spline interpolation) disagree slightly.
-	\emph{Right}: The residual after shifting the dataset right by half a sample
-	(i.e. half-way between the red points in the middle panel) using fourier
-	(red) and spline (green) interpolation, and then back again using fourier interpolation
-	in both cases. When the forwards and backwards methods do not match, the result is biased.}
-	\label{fig:iptoy}
-\end{figure}
-
-\begin{figure}
-	\centering
 	\includegraphics[width=0.8\textwidth]{plots/error_std_sb_abs_log_log.pdf}
 	\caption{Simulator/map-maker spectral bias test. Recovered I and Q spectra and
 	their errors for a noiseless simulation
@@ -1063,85 +1121,6 @@ detectors at 256 Hz.
 	of the signal in P. These errors are independent of observing mode.}
 	\label{fig:specbias}
 \end{figure}
-
-\begin{figure}
-	\centering
-	\hspace*{-2mm}\begin{tabular}{cc}
-		I & Q \\
-		\includegraphics[height=70mm,clip,trim=0 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_T.pdf} &
-		\includegraphics[height=70mm,clip,trim=30mm 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_Q.pdf}
-	\end{tabular}
-	\caption{The effect of sample window and fourier shift distance on the
-	mapmaking bias. Both of these are examples of sub-pixel bias. The sample
-	window error comes from the mismatch between the gaussian quadrature that is
-	used to integrate the sample window and the fourier-space deconvolution that
-	is used to remove it. It rises with frequency and is a $\sim 10^{-7}$ error
-	at 1 THz. The fourier shift error comes from the mismatch between the
-	high-res bicubic sub-pixel behavior of the sky in the simulator and the
-	bandlimited fourier model used in the map-maker. It has a surprisingly large
-	dependence on the interpolation distance. Spin-1 fourier shifting has
-	twice the interpolation distance of Spin-2 fourier shifting, but $10^3-10^4$
-	times as large a bias. The red curve shows the error for a
-	monopole-only sky when using no sample window, demonstrating
-	that aside from sub-pixel biases the accuracy is close to double
-	precision float error.
-	The relative Q error is high at low frequency because the signal itself
-	becomes very small there. The feature at 90 GHz is due to Q changing
-	sign there for this pixel.
-	}
-	\label{fig:subpixel-spec}
-\end{figure}
-
-Before investigating complications from instrument imperfections,
-it's useful to benchmark the performance of the simulator
-and map-maker on noiseless, ideal data. Figure~\ref{fig:tod} shows
-a scan's worth of simulated noiseless PIXIE time-ordered data for
-a single detector, in both single and double barrel mode, and
-figure~\ref{fig:spatbias} shows the corresponding recovered maps
-and their deviation from the input model at 58 GHz evaluated at
-the center of each pixel. Even under these idealized conditions
-the residual is not zero, though it is small: ~500 mJy/sr for
-dust and much less for the CMB in T, compared to the ~100 MJy/sr
-CMB monopole; and ~5 mJy/sr in P, compared to 200 Jy/sr for the signal.
-Figure~\ref{fig:specbias} shows the signal and bias spectra for
-a single input pixel, compared to the expected instrument noise.
-
-We believe that these biases are almost entirely due to sub-pixel effects.
-During the orthoganalization procedure (section~\ref{sect:ortho})
-interpolation is needed to go from the observed samples to the
-idealized, orthogonal samples. The map-maker uses fourier-interpolation
-to do this, but the simulator uses bicubic spline interpolation to
-generate samples that fall between input pixels. Hence, the
-simulator and map-maker are making different assumptions about how
-the signal behaves on sub-pixel scales, and this mismatch leads
-to $\textrm{map}\rightarrow\textrm{tod}$ and $\textrm{tod}\rightarrow
-\textrm{map}$ not being exact inverses of each other. Figure~\ref{fig:iptoy}
-demonstrates this effect for a simpler 1-dimensional case.
-
-Sub-pixel errors also occur during the sample window deconvolution.
-The sample window is simulated by integrating sub-samples using
-gaussian quadrature, which amounts to assuming that the sub-sample
-behavior is described by a low-order polynomial. However, the
-deconvolution is done by dividing by a sample window in fourier space,
-which assumes that the sub-pixel behavior is given by sines and
-cosines bandlimated by the sampling frequency.
-
-We investigate the effect of these sub-pixel effects in
-figure~\ref{fig:subpixel-spec}, where we first remove the
-sample window (both in simulation and map-making), and then
-make the map spatially homogeneous to eliminate sub-pixel effects.
-After removing both of these, we are left with a relative error of
-$\sim10^{-15}$, which we attribute to floating point errors.
-
-These sub-pixel effects would not have appeared if the simulator
-and map-maker both made the same assumptions about sub-pixel behavior,
-which would have been the case for a simpler simulator.
-That would, however, have been misleading. The real sky is neither
-fourier-interpolated nor bicubic-interpolated, and so this kind of
-sub-pixel mismatch is unavilable when analyzing actual data. The
-mismatch between fourier-interpolation and bicubic interpolation
-is not exactly the same as what one can expect for the real data,
-but it is a good approximation for it.
 
 \subsection{Intensity to polarizaiton leakage}
 \begin{figure}
@@ -1184,7 +1163,7 @@ but it is a good approximation for it.
 	\end{tabular}
 	\caption{Simulation of a highly elliptical beam with a flattening of 0.5
 	observing a point source with 10\% polarization in the Q direction. The
-	beam is built up from 5 identical, circular, guassian components
+	beam is built up from 5 identical, circular, gaussian components
 	with FWHM of $1.9\deg$ offset
 	vertically with an interval of $0.475\deg$. \emph{Left}:
 	Map of the instantaneous beam profile, with axis units of degrees. \emph{Middle}:
@@ -1304,17 +1283,24 @@ orthogonal case, where telescope does not scan or stroke while spinning, every
 pixel would be observed equally at every spin angle, leading to perfect
 circularization. In practice, though, we need to rely on interpolation to
 simulate an orthogonal scanning pattern, and this relies on the signal changing
-smoothly as the spin angle changes in $45\degree$ steps (since there are 8
-strokes per full spin). But a very long and thin beam could in theory sweep
+smoothly as the spin angle changes in $22.5\degree$ steps (since there are 16
+half-strokes per full spin)\footnote{This is for spin-2 orthogonalization.
+With spin-1, we get 8 full strokes per spin and hence $45\degree$ steps.}
+\footnote{While the autocorrelation function repeats
+every quarter-stroke, every other quarter-stroke is mirrored, so they do not
+form an equi-spaced dataset suitable for fourier interpolation when orthogonalizing.
+Otherwise, we could have gotten both 32 orthogonalized spin angles would have been
+possible.}.
+But a very long and thin beam could in theory sweep
 over a small feature in far shorter time than this. This would create
 complicated spatially dependent artifacts in the autocorrelation function.
 
 Furthermore, even if the orthogonalization went perfectly, it would still only
-result in 8 discrete, evenly spaced spin angles\footnote{When using
+result in 16 discrete, evenly spaced spin angles\footnote{When using
 high-resolution mapping (see panel F in figure~\ref{fig:ortho}) this reduces to
-4.} per pixel. The resulting beam is then the average over these 8
+8.} per pixel. The resulting beam is then the average over these 16
 orientations, and so would not be perfectly radially symmetric, but would
-instead have an 8-fold angular symmetry.
+instead have an 16-fold angular symmetry.
 
 These effects are illustrated in figure~\ref{fig:badbeam}, for a
 multimodal beam with two circular components separated by $10\degree$.
@@ -1388,11 +1374,10 @@ noise should not be an issue for PIXIE.
 	and compared to the mirror average displacement per second divided by $10^5$.
 	\emph{Right}:
 	The average single-pixel spectrum error caused by this jitter
-	compared to the signal, PIXIE noise and simulator/map-maker bias.
+	compared to the signal, PIXIE noise and subpixel/subsample bias.
 	A mirror jitter of the form and magnitude simulated here would be
 	the largest of the systematic effects investigated in this
-	paper, in I approaches the PIXIE detector
-	noise. This plot is for single barrel mode, but the jitter noise
+	paper. This plot is for single barrel mode, but the jitter noise
 	curve in polarization is the same in double barrel mode.}
 	\label{fig:jitter}
 \end{figure}
@@ -1448,6 +1433,108 @@ potential concern. At jitter levels above $0.10 \mu\textrm{m}\sqrt{\textrm{s}}$
 for I or $3.1\mu\textrm{m}\sqrt{\textrm{s}}$ for P, the jitter rather
 than detector performance becomes the limiting factor for the instrument's sensitivity.
 
+\section*{Acknowledgements}
+Jo if not on author list, Pixie people, Thibaut, SF
+
+\bibliographystyle{act_titles}
+\bibliography{refs}
+
+\pagebreak
+
+\appendix
+
+\section{Sub-pixel effects}
+\label{sect:subpix}
+As we saw in section~\ref{sect:results}, even ideal, noiseless
+simulations result in low-level deviation from the input, as
+seen in map-space in figure~\ref{fig:spatbias} and in the
+spectrum in figure~\ref{fig:specbias}.
+
+We believe that these biases are almost entirely due to sub-pixel effects.
+During the orthoganalization procedure (section~\ref{sect:ortho})
+interpolation is needed to go from the observed samples to the
+idealized, orthogonal samples. The map-maker uses fourier-interpolation
+to do this, but the simulator uses bicubic spline interpolation to
+generate samples that fall between input pixels. Hence, the
+simulator and map-maker are making different assumptions about how
+the signal behaves on sub-pixel scales, and this mismatch leads
+to $\textrm{map}\rightarrow\textrm{tod}$ and $\textrm{tod}\rightarrow
+\textrm{map}$ not being exact inverses of each other. Figure~\ref{fig:iptoy}
+demonstrates this effect for a simpler 1-dimensional case.
+\begin{figure}[h!]
+	\centering
+	\hspace*{-13mm}\begin{tabular}{m{59mm}m{59mm}m{59mm}}
+		\hspace{30mm}Input & \hspace{20mm}Interpolations & \hspace{30mm}Residual \\
+		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_input.pdf} &
+		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_interpol.pdf} &
+		\includegraphics[height=43mm,clip,trim=0 0 0 0]{plots/subpixel_model_residual.pdf}
+	\end{tabular}
+	\caption{1-dimensional toy example of sub-pixel mismatch bias.
+	\emph{Left}: The input data set, which is a densely sampled sine wave with
+	25 points per wavelength. \emph{Middle}: Two models for the sub-pixel behavior
+	of the data set (fourier and spline interpolation) disagree slightly.
+	\emph{Right}: The residual after shifting the dataset right by half a sample
+	(i.e. half-way between the red points in the middle panel) using fourier
+	(red) and spline (green) interpolation, and then back again using fourier interpolation
+	in both cases. When the forwards and backwards methods do not match, the result is biased.}
+	\label{fig:iptoy}
+\end{figure}
+
+Sub-pixel errors also occur during the sample window deconvolution.
+The sample window is simulated by integrating sub-samples using
+gaussian quadrature, which amounts to assuming that the sub-sample
+behavior is described by a low-order polynomial. However, the
+deconvolution is done by dividing by a sample window in fourier space,
+which assumes that the sub-pixel behavior is given by sines and
+cosines bandlimited by the sampling frequency.
+
+We investigate the effect of these sub-pixel effects in
+figure~\ref{fig:subpixel-spec}, where we first remove the
+sample window (both in simulation and map-making), and then
+make the map spatially homogeneous to eliminate sub-pixel effects.
+After removing both of these, we are left with a relative error of
+$\sim10^{-15}$, which we attribute to floating point errors.
+\begin{figure}
+	\centering
+	\hspace*{-2mm}\begin{tabular}{cc}
+		I & Q \\
+		\includegraphics[height=70mm,clip,trim=0 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_T.pdf} &
+		\includegraphics[height=70mm,clip,trim=30mm 0 0 0]{plots/spec_error_rel_v4_log_log_spin_win_Q.pdf}
+	\end{tabular}
+	\caption{The effect of sample window and fourier shift distance on the
+	mapmaking bias. Both of these are examples of sub-pixel bias. The sample
+	window error comes from the mismatch between the gaussian quadrature that is
+	used to integrate the sample window and the fourier-space deconvolution that
+	is used to remove it. It rises with frequency and is a $\sim 10^{-7}$ error
+	at 1 THz. The fourier shift error comes from the mismatch between the
+	high-res bicubic sub-pixel behavior of the sky in the simulator and the
+	bandlimited fourier model used in the map-maker. It has a surprisingly large
+	dependence on the interpolation distance. Spin-1 fourier shifting has
+	twice the interpolation distance of Spin-2 fourier shifting, but $10^3-10^4$
+	times as large a bias. The red curve shows the error for a
+	monopole-only sky when using no sample window, demonstrating
+	that aside from sub-pixel biases the accuracy is close to double
+	precision float error.
+	The relative Q error is high at low frequency because the signal itself
+	becomes very small there. The feature at 90 GHz is due to Q changing
+	sign there for this pixel.
+	}
+	\label{fig:subpixel-spec}
+\end{figure}
+
+
+
+These sub-pixel effects would not have appeared if the simulator
+and map-maker both made the same assumptions about sub-pixel behavior,
+which would have been the case for a simpler simulator.
+That would, however, have been misleading. The real sky is neither
+fourier-interpolated nor bicubic-interpolated, and so this kind of
+sub-pixel mismatch is unavilable when analyzing actual data. The
+mismatch between fourier-interpolation and bicubic interpolation
+is not exactly the same as what one can expect for the real data,
+but it is a good approximation for it.
+
+
 %\begin{figure}
 %	\centering
 %	\hspace*{-5mm}\begin{tabular}{cc}
@@ -1473,8 +1560,5 @@ than detector performance becomes the limiting factor for the instrument's sensi
 %	leakage, but this term has the opposite sign for oppositely aligned
 %	detectors, and hence cancels.}
 %\end{figure}
-
-\bibliographystyle{act_titles}
-\bibliography{refs}
 
 \end{document}
