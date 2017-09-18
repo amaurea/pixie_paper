@@ -40,13 +40,13 @@
 
 \title{PIXIE time-ordered data simulation and map-making}
 
-\author[1,3]{S. K. Næss}
-\author[2,3]{J. Dunkley}
-%\author[4,5]{D. J. Fixen}
+\author[1,2]{S. K. Næss}
+%\author[2,3]{J. Dunkley}
+%\author[4,5]{D. J. Fixsen}
 %\author[5]{A. Kogut}
 \affil[1]{Center for Computational Astrophysics, Flatiron Institute}
-\affil[2]{Princeton University}
-\affil[3]{Oxford University}
+%\affil[2]{Princeton University}
+\affil[2]{Oxford University}
 %\affil[4]{University of Maryland}
 %\affil[5]{Goddard Space Flight Center}
 
@@ -590,10 +590,10 @@ density,
 	\equiv \bar I_\nu(\Delta t)
 \end{align}
 where $\bar{x}$ indicates the cosine transform of $x$.
-{\color{red}This is confusing. Tilde quantities are consistently
-in frequency space in the interferometry section, but here the visually
-similar bars indiate the cosine transform of a frequency space quantity
-into a real space quantity.}
+%{\color{red}This is confusing. Tilde quantities are consistently
+%in frequency space in the interferometry section, but here the visually
+%similar bars indiate the cosine transform of a frequency space quantity
+%into a real space quantity.}
 Applying this to the Taylor expansion, we get
 \begin{align}
 I^\textrm{CMB}_{\Delta t,I}(\hat p,\Delta t) &= \bar f_0(\Delta t) + \bar f_1(\Delta t) \Delta T + \frac12 \bar f_2(\Delta t) \Delta T^2 + \frac16 \bar f_3(\Delta t) \Delta T^3
@@ -1434,7 +1434,11 @@ for I or $3.1\mu\textrm{m}\sqrt{\textrm{s}}$ for P, the jitter rather
 than detector performance becomes the limiting factor for the instrument's sensitivity.
 
 \section*{Acknowledgements}
-Jo if not on author list, Pixie people, Thibaut, SF
+We would like to thank D. J. Fixsen and A. Kogut for answering all our questions
+about the detailed workings of PIXIE; J. Dunkley for encouragement and useful discussion
+during the implementation and testing of the code, and T. Louis for helpful comments
+during the writing of the article. The Flatiron Institute is supported by the
+Simons Foundation.
 
 \bibliographystyle{act_titles}
 \bibliography{refs}
@@ -1521,8 +1525,6 @@ $\sim10^{-15}$, which we attribute to floating point errors.
 	}
 	\label{fig:subpixel-spec}
 \end{figure}
-
-
 
 These sub-pixel effects would not have appeared if the simulator
 and map-maker both made the same assumptions about sub-pixel behavior,
