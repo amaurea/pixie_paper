@@ -559,10 +559,11 @@ so that we don't get aliasing from frequencies above the instrument's
 Nyquist frequency of 7 THz.}, PIXIE
 observes the CMB with the spectrum
 \begin{align}
-I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= \rho(\nu)B_\nu(\nu, T(\hat p)) = \frac{2h\nu^3\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{kT(\hat p)}} - 1}
+I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= \rho(\nu)B_\nu(\nu, T(\hat p)) = \frac{2h\nu^3\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{k_BT(\hat p)}} - 1}
 \end{align}
 Here the $I$ subscript indicates the Stokes intensity parameter, and $T(\hat p)$ is the
-CMB temperature at pointing $\hat p$.
+CMB temperature at pointing $\hat p$. $k_B$ and $h$ are the Boltzmann and Planck constants
+respectively.
 Including the doppler dipole, T only has a contrast of order $10^{-3}$, so a Taylor
 expansion in T will converge rapidly. Our goal is $<10^{-9}$ relative error, so an
 expansion to 3rd order, which should give order $10^{-12}$ error, should be sufficient.
@@ -579,7 +580,7 @@ where
 	f_3 &= p(-2 f_1^2 g_1 - 2f_0 f_2 g_1 - 4 f_0 f_1 g_2 - f_0^2 g_3) &
 	g_3 &= -(3/T_0 + a/T_0^2)g_2 + a g_1/T_0^3
 \end{align*}
-and where $p = \frac{2h\nu^3\rho(\nu)}{c^2}$, $a = h\nu/k$ and $\Delta T(\hat p) = T(\hat p)-T_0$ with $T_0 = 2.725$K. 
+and where $p = \frac{2h\nu^3\rho(\nu)}{c^2}$, $a = h\nu/k_B$ and $\Delta T(\hat p) = T(\hat p)-T_0$ with $T_0 = 2.725$K. 
 
 The autocorrelation function is simply the cosine transform\footnote{
 We implemented the cosine transform using a discrete cosine transform with a
@@ -619,7 +620,7 @@ T,E,B and $\phi$ spherical harmonics coefficients from a typical CMB power spect
 as output by CAMB\footnote{The spectrum used is provided in the file \code{
 	inputs/cl\_lensinput.dat}.} and projecting them on a sky with $0.1\degree$
 pixels in equirectangular (CAR) projection using the \code{libsharp} Spherical
-Harmonics Transform library \citet{libsharp}. The lensing potential $\phi$ was then used to
+Harmonics Transform library \citep{libsharp}. The lensing potential $\phi$ was then used to
 lens the T, Q and U maps. We then added the 2.725 K CMB monopole to the T
 component before doppler boosting the sky\footnote{$\beta=0.0012301$ towards
 ecliptic coordinates $l=171.646$, $b=-11.141$.}
@@ -628,9 +629,9 @@ to account for our motion relative to the CMB, resulting in the CMB dipole.
 \subsubsection{Dust}
 \label{sect:dust}
 We model the dust as a modified blackbody with constant
-$T=19.6$K and $\beta=1.59$, but varying opacity. The observed spectrum is thus
+$T_D=19.6$K and $\beta=1.59$, but varying opacity. The observed spectrum is thus
 \begin{align}
-I^\textrm{dust}_{\nu,i}(\hat p,\nu) &= A_i(\hat p) \frac{h\nu^{3+\beta}\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{kT}}-1} \equiv A_i(\hat p) f_{0\beta}(\nu)
+I^\textrm{dust}_{\nu,i}(\hat p,\nu) &= A_i(\hat p) \frac{h\nu^{3+\beta}\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{k_BT_D}}-1} \equiv A_i(\hat p) f_{0\beta}(\nu)
 \end{align}
 for $i \in \{I,Q,U\}$. Here the prefactor $A_i(\hat p)$ encodes the position-dependent
 dust opacity and polarization.
@@ -641,7 +642,7 @@ pointing.
 \begin{align}
 I^\textrm{dust}_{\Delta t,i}(\hat p,\Delta t) &= A_i(\hat p) \bar f_{0\beta}(\Delta t)
 \end{align}
-This will need to be modified for more complicated dust models. If $T$ or $\beta$
+This will need to be modified for more complicated dust models. If $T_D$ or $\beta$
 only change slightly, then the Taylor expansion approach can be used. For more
 substantial variation, a better approach may be to model it as several dust components,
 each with fixed parameters.
@@ -1122,7 +1123,7 @@ performance.
 	\label{fig:specbias}
 \end{figure}
 
-\subsection{Intensity to polarizaiton leakage}
+\subsection{Intensity to polarization leakage}
 \begin{figure}
 	\centering
 	\hspace*{-10mm}\begin{tabular}{m{35mm}rm{11mm}m{11mm}m{11mm}m{11mm}m{11mm}m{11mm}m{20mm}}
