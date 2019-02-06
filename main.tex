@@ -83,7 +83,7 @@ higher angular resolution and reduced systematics.
 It would provide $1.6\degree$ FWHM full-sky maps in Stokes I, Q and U parameters
 in 480 frequency channels from 15 GHz to 7 THz (though it would be noise dominated
 beyond ca. 4 THz) to a depth of $70\rm nK\degree$ (that is, a square degree
-variance of $1400 nK^2$) after 4 years of integration
+variance of $1400~nK^2$) after 4 years of integration
 \citep{pixie2011}. This corresponds to providing a frequency spectrum 10 times more
 sensitive than FIRAS CMB monopole spectrum in each $1\degree$ pixel of the sky.
 That is sufficient to constrain the spectral distortion parameters to $\mu < 4\cdot 10^{-7}$
@@ -390,7 +390,11 @@ For the bandpass filter we used a Butterworth bandpass filter,
 \label{sec:pointing}
 PIXIE would orbit at the Sun-Earth L2 point, placing it in the ecliptic, with
 a heliocentric ecliptic latitude $b=0$ and longitude $l=l_0 +
-360\degree\frac{t-t_0}{T_\textrm{orbit}}$ with $T_\textrm{orbit} = 1\textrm{ year}$.
+360\degree\frac{t-t_0}{T_\textrm{orbit}}$\footnote{We're ignoring the
+orbital eccentricity here for simplicity, but nothing in the simulation
+or mapmaking relies on the longitude changing at a constant rate,
+so it would be trivial to add support for eccentricity.}
+with $T_\textrm{orbit} = 1\textrm{ year}$.
 In addition to this orbital motion, PIXIE also scans great circles\footnote{
 Getting sufficient sun shielding might require the opening angle of the scan
 to be smaller than $180\degree$. This would make the scans small circles instead.
@@ -1034,6 +1038,9 @@ these, then disabling pixel window integration results in a factor $\sim 7$ spee
 Further speedups would be possible in a simulator that operates at the same spatial
 and spectral resolution as the final maps, such as the spectral cube design needed
 for spatially and spectrally varying beams (see section~\ref{sect:autocorr-problems}).
+
+Since each scan takes 384 minutes to collect but only 23 CPU-seconds to map with this
+mapmaker, a single core would easily keep up with the data down-link from the instrument.
 
 \begin{figure}
 	\centering
