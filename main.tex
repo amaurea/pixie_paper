@@ -1,4 +1,5 @@
 \documentclass{article}
+\pdfoutput=1
 \usepackage{amsmath,amssymb,gensymb,color,graphicx,array,authblk,multirow}
 \usepackage{natbib,hyperref,aas_macros}
 \usepackage[margin=22mm]{geometry}
@@ -43,13 +44,13 @@
 \author[1,2]{S. K. Næss}
 \author[2,3,4]{J. Dunkley}
 \author[5]{A. Kogut}
-%\author[5,6]{D. J. Fixsen}
+\author[5,6]{D. J. Fixsen}
 \affil[1]{Center for Computational Astrophysics, Flatiron Institute}
 \affil[2]{Oxford Astrophysics, Keble Road, Oxford, OX1 3RH, UK}
 \affil[3]{Princeton Physics, Jadwin Hall, Washington Road, Princeton NJ 08544}
 \affil[4]{Princeton Astrophysics, Peyton Hall, Ivy Lane, Princeton NJ 08544}
 \affil[5]{Goddard Space Flight Center}
-%\affil[6]{University of Maryland}
+\affil[6]{University of Maryland}
 
 \begin{document}
 \maketitle
@@ -62,7 +63,7 @@
 	that PIXIE is robust to all of these effects, with the exception
 	of mirror jitter which could become the dominant source of noise
 	in the experiment if the jitter is not kept significantly below
-	$0.1\mu m\sqrt{s}$. Source code is available at \url{https://github.com/amaurea/pixie}.
+	$0.1\rm\mu m\sqrt{s}$. Source code is available at \url{https://github.com/amaurea/pixie}.
 \end{abstract}
 
 \section{Introduction}
@@ -81,7 +82,8 @@ with $\sim 1000$ times higher sensitivity, polarization support, 4 times
 higher angular resolution and reduced systematics.
 It would provide $1.6\degree$ FWHM full-sky maps in Stokes I, Q and U parameters
 in 480 frequency channels from 15 GHz to 7 THz (though it would be noise dominated
-beyond ca. 4 THz) to a depth of $70n\textrm{K}\degree$ after 4 years of integration
+beyond ca. 4 THz) to a depth of $70\rm nK\degree$ (that is, a square degree
+variance of $1400 nK^2$) after 4 years of integration
 \citep{pixie2011}. This corresponds to providing a frequency spectrum 10 times more
 sensitive than FIRAS CMB monopole spectrum in each $1\degree$ pixel of the sky.
 That is sufficient to constrain the spectral distortion parameters to $\mu < 4\cdot 10^{-7}$
@@ -111,7 +113,7 @@ the impact of some of the relevant systematic effects.
 	A at the left side of the figure. It passes through the vertical polarizer A
 	unmolested, but is split into two different linear combinations of vertical
 	and horizontal (blue) polarization at the diagonal polarizer B. It then encounters
-	the moving mirror, which in this example slightly retards the top optial path.
+	the moving mirror, which in this example slightly retards the top optical path.
 	The rays are combined in the next diagonal polarizer C, but due to the
 	phase delay the horizontal polarization does not fully cancel. The vertical
 	polarization is correspondingly lower. The final vertical polarizer (D)
@@ -121,7 +123,7 @@ the impact of some of the relevant systematic effects.
 	\label{fig:fts}
 \end{figure}
 Unlike most CMB experiments, but like FIRAS, PIXIE does not use a
-large number of detectors and frequency filters to mesure the
+large number of detectors and frequency filters to measure the
 frequency spectrum. Instead it splits the incoming radiation into
 two paths, introduces a variable delay between them, and then lets them
 interfere with each other. For each delay used, this results in
@@ -153,7 +155,7 @@ reduced by this technique.
 
 To be able to simulate PIXIE observations, we need to know how
 the power incident on its detectors relates to the incoming radiation.
-This was done in \cite{pixie2011}, but is repeated here in more detail
+This was done by \cite{pixie2011}, but is repeated here in more detail
 for convenience.
 
 We can expand the electric field $\vec E^A(t)$,
@@ -268,8 +270,9 @@ therefore uncorrelated, and all the cross-terms disappear.
 \paragraph{Double barrel mode}
 In double barrel mode the two barrels are both coaligned and exposed to the sky,
 so they observe the same wavefront entering. As PIXIE's angular resolution is
-not infinite it is sensitive to wavefronts that are off-axis by a few degrees.
-Light arriving from direction $\hat n$ will hit Barrel B a time
+not infinite it is sensitive to wavefronts that are off-axis by a few degrees,
+causing the two barrels to act as a 2-element spatial interferometer.
+Light arriving from a single direction $\hat n$ will hit Barrel B a time
 $\tau = \hat n \cdot \vec b / c$ before barrel A, where $\vec b$ is the distance vector from
 barrel A to barrel B, and $c$ is the speed of light (see~\citet[appendix]{pixie-systematics}).
 So in this case $\vec \J^B = \gamma \vec\J^A$ with $\gamma = e^{-i\omega\tau}$.
@@ -279,17 +282,23 @@ So in this case $\vec \J^B = \gamma \vec\J^A$ with $\gamma = e^{-i\omega\tau}$.
 	\V^L &= \V^A-I^A\cos(\omega\tau)\sin(\omega\Delta t) &
 	\U^L &= \U^A\cos(\omega\Delta t)-\Q^A\sin(\omega\tau)\sin(\omega\Delta t) \label{eq:double}
 \end{align}
-If the barrels are not perfectly collimated, or if they have asymmetric sidelobes or different beam size,
-then the situation will be more complicated, as only part of the radiation that
-enters the barrels will be correlated.
+The total signal will be the contribution from all directions integrated over the
+barrel beam. The cross terms (those proportional to $\sin(\omega\Delta t)$ are
+antisymmetric with respect to the baseline $\vec b$ separting the two barrels, making it cancel
+to first order when integrated over the symmetric beam. Furthermore, the
+$\sin(\omega \Delta t)$ dependence of any residual is anti-symmetric
+with respect to the mirror stroke, forcing these terms into the (unphysical) imaginary part of
+the frequency maps. This imaginary part contains none of the real signal and would usually
+be discarded, but can be inspected as a test for systematic errors.
 
-The leakage terms are not yet implemented in the simulator described in this
-article. However, as they are all proportional to $\sin(\omega\Delta t)$ and
-are therefore an antisymmetric function of the mirror stroke, they can be
-easily disentangled from the main signal which is symmetric. Their absence
-from the simulation should therefore not impact our results meaningfully.
+If the barrels are not perfectly collimated, or if they have asymmetric
+sidelobes or different beam size, then the situation will be more complicated,
+as only part of the radiation that enters the barrels will be correlated.
 
-In the absence of the leakage terms, the signal in double barrel mode is
+These cross terms are not implemented in the current version of the simulator,
+but for the reasons above we do not expect this to impact our results meaningfully.
+
+In the absence of the cross terms terms, the signal in double barrel mode is
 identical to that of single barrel mode with $(I^A,Q^A,U^A,V^A)=(I^B,Q^B,U^B,V^B)$,
 so we can use the single barrel eqs~(\ref{eq:single}) in the following
 without further loss of generality.
@@ -382,7 +391,7 @@ For the bandpass filter we used a Butterworth bandpass filter,
 PIXIE would orbit at the Sun-Earth L2 point, placing it in the ecliptic, with
 a heliocentric ecliptic latitude $b=0$ and longitude $l=l_0 +
 360\degree\frac{t-t_0}{T_\textrm{orbit}}$ with $T_\textrm{orbit} = 1\textrm{ year}$.
-As it orbits it scans great circles\footnote{
+In addition to this orbital motion, PIXIE also scans great circles\footnote{
 Getting sufficient sun shielding might require the opening angle of the scan
 to be smaller than $180\degree$. This would make the scans small circles instead.
 This would result in 1. the ecliptic poles no longer being covered, and 2. the
@@ -393,7 +402,8 @@ $\alpha_\textrm{scan} = \alpha_{\textrm{scan},0} + 360\degree \frac{t-t_0}{T_\te
 To form an actual great circle the scan axis does not
 move continuously with $b$, but updates in steps after each circle has been completed:
 $\alpha_\textrm{orbit} = l_0 + 360\degree\left\lfloor\frac{t-t_0}{T_\textrm{scan}}\right\rfloor\frac{T_\textrm{scan}}{T_\textrm{orbit}}$.
-During each scan the the telescope spins around its boresight to modulate
+On top of this scanning motion, the telescope also spins rapidly around the
+barrel boresight in order to modulate
 the observed polarization and reject systematics: $\alpha_\textrm{spin} =
 \alpha_{\textrm{spin},0} + 360\degree\frac{t-t_0}{T_\textrm{spin}}$. And finally,
 while it is spinning the dihedral mirror sweeps backwards and forwards at constant
@@ -406,19 +416,16 @@ crossing at $x=0$.
 
 \begin{figure}
 	\centering
-	\begin{tabular}{m{90mm}m{70mm}}
-		\includegraphics[width=90mm]{plots/scan_orbit.pdf} &
-		\includegraphics[width=70mm]{plots/scan_car.pdf}
+	\begin{tabular}{m{80mm}m{70mm}}
+		\includegraphics[width=80mm]{plots/pixie_obs_sim_paper.pdf} &
+		\includegraphics[width=70mm,clip,trim=150mm 0 0 0]{plots/scan_orbit.pdf}
 	\end{tabular}
-	\caption{\emph{Left}: PIXIE would be located at the Sun-Earth L2 point,
+	\caption{\emph{Left}: The PIXIE observatory, showing the spin and scan
+	axes relative to the barrel beams and the direction towards the sun.
+	\emph{Right}: PIXIE would be located at the Sun-Earth L2 point,
 	and would scan in great circles while pointing $90\degree$ away from the
 	Sun, adjusting its orientation stepwise between each scan. This results
-	in the whole sky being covered every 6 months. \emph{Right}: PIXIE's
-	scanning pattern is particularly simple in ecliptic (extended) plate carrée (CAR)
-	coordinates, where each scan moves at constant pixel velocity purely along the
-	latidude axis. 3 example scans separated by 7.6 days are as black lines.
-	The extended CAR coordinates here cover two mirror images of the full sky
-	in order to show full scans without breaks.}
+	in the whole sky being covered every 6 months.}
 \end{figure}
 
 To allow PIXIE mapmaking to use fast Fourier transform methods, the stroke, spin
@@ -428,6 +435,13 @@ values $T_\textrm{spin} = 60 \textrm{s}$, $T_\textrm{stroke} = T_\textrm{spin}/8
 7.5 \textrm{ sec}$, $T_\textrm{scan} = 384 T_\textrm{spin} = 384 \textrm{ min}$ here.
 The time-ordered data (TOD) simulator purposefully does not depend on integer ratios to be able
 to investigate the consequences of small deviations from integer ratios.
+
+{\bf To summarize}, PIXIE moves in four different ways: It orbits with a 1 year period;
+it scans in great circles perpendicular to the direction towards the sun with a 384
+minute period; it spins around the boresight with a 1 minute
+period; and it strokes the FTS mirror with a 7.5 second period. Aside from the orbital
+period these numbers are subject to change, but the period ratios will be kept at
+integer numbers.
 
 In order to speed up our simulations we will modify the scanning pattern we
 simulate in one important respect. The actual L2 orbital
@@ -524,7 +538,7 @@ allows for high-resolution simulations in this paper.
 
 \subsection{Other approaches}
 If one assumes a frequency-independent beam, which should be a good approximation
-for PIXIE, and if the spectrum can be written as a linear sum of a a smaller
+for PIXIE, and if the spectrum can be written as a linear sum of a smaller
 number of spatial templates, then it's sufficient to apply the beam to those
 templates rather than the spectrum itself. This
 decouples the spatial and spectral dimensions, making it possible to evaluate the
@@ -555,10 +569,13 @@ precomputed autocorrelation function. This is done differently for each sky comp
 \label{sect:cmb}
 Taking into account the instrument's frequency response $\rho(\nu)$, which
 we model as $\rho(\nu) = e^{-\left[\frac{\nu}{1.5\textrm{THz}}\right]^2}$
-\footnote{PIXIE's frequency response is limited above 1-2 THz by the
-roughness of the mirrors. This serves to band-limit the signal
-so that we don't get aliasing from frequencies above the instrument's
-Nyquist frequency of 7 THz.}, PIXIE
+\footnote{
+PIXIE's frequency response is limited above 1-2 THz by the
+roughness of the mirrors. Scattering from the mirrors
+provides a gradual decrease in the coupling of the detectors
+to the sky.  The resulting apodized frequency response
+smoothly band-limits the signal to avoid aliasing from frequencies
+about the instrument's Nyquist frequency of 7 THz.}, PIXIE
 observes the CMB with the spectrum
 \begin{align}
 I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= \rho(\nu)B_\nu(\nu, T(\hat p)) = \frac{2h\nu^3\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{k_BT(\hat p)}} - 1}.
@@ -649,7 +666,7 @@ only change slightly, then the Taylor expansion approach can be used. For more
 substantial variation, a better approach may be to model it as several dust components,
 each with fixed parameters.
 
-The input dust map was simulated using the Planck Sky Model \cite{psm} code \code{PySM}
+The input dust map was simulated using the Python Sky Model \cite{pysm-2017} code \code{PySM}
 of a thermal dust-only sky evaluated at 600 GHz (with no bandpass).
 This was computed at HEALPix $N_\textrm{side} = 512$, but the polarization
 map \code{PySM} produces is limited to $2\degree$ resolution due to the limited
@@ -666,9 +683,19 @@ in a similar vein as above, as long as they can be approximated as a sum of
 constant-spectral-shape components or can be Taylor-expanded to sufficient accuracy.
 
 \section{Beams and sidelobes}
-PIXIE's beam will be approximately frequency-independent and approximately
-top-hat shaped, but we will here approximate it with a Gaussian
-with a FWHM of $1.9\degree$. As discussed in section~\ref{sect:autocorr-problems},
+PIXIE will use multi-moded optics, as opposed to the single-moded optics common to
+many imaging CMB instruments. For a single-moded system, the
+number of modes is fixed at unity and the beam size depends on the
+etendue and observing wavelength ($\Omega \propto \lambda^2$).
+For a multi-moded system, the beam size is fixed and the number of modes
+depends on the etendue and wavelength ($N_\textrm{modes} \propto \Omega / \lambda^2$).
+This has been tested in the lab for PIXIE, and the beam was found to be
+\emph{frequency-independent} above about 30 GHz \citep{pixie-multi-moded-2015,pixie-multi-moded-beams-2018}.
+PIXIE's beam
+is also approximately top-hat shaped, but we will here approximate it with
+a Gaussian with FWHM of $1.9\degree$.
+
+As discussed in section~\ref{sect:autocorr-problems},
 a frequency-independent beam is much cheaper to implement than a frequency-dependent
 one as long as the spectrum maps are linear functions of a small number of input
 maps. For our dust model this is simple - the spectrum is proportional
@@ -804,6 +831,18 @@ strokes per spin and spins per scan respectively.
 For simplicity, we will also assume that the detectors have independent white
 noise of equal amplitude. Neither of these are necessary, and can be easily
 relaxed in the future.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=70mm]{plots/scan_car.pdf}
+	\caption{PIXIE's
+	scanning pattern is particularly simple in ecliptic (extended) plate carrée (CAR)
+	coordinates, where each scan moves at constant pixel velocity purely along the
+	latidude axis. This allows an exact correspondence between samples and pixels.
+	3 example scans separated by 7.6 days are as black lines.
+	The extended CAR coordinates here cover two mirror images of the full sky
+	in order to show full scans without breaks.}
+\end{figure}
 
 \subsection{Orthogonalization}
 \label{sect:ortho}
@@ -1110,7 +1149,8 @@ imperfections on PIXIE’s performance.
 		\emph{Bottom row}: Difference between the mapmaking output maps and
 			input maps at the same frequency for a noise-less simulation.
 			The color range is $\pm 500$ mJy/sr for I and $\pm 5$ mJy/sr for P.
-			These represent the bias of the simulator-map-maker combination.}
+			These represent the bias of the simulator-map-maker combination.
+			The biases are small compared to the instrument noise.}
 	\label{fig:spatbias}
 \end{figure}
 
@@ -1124,7 +1164,7 @@ imperfections on PIXIE’s performance.
 	The U spectrum is similar to the Q one, but was left out to avoid clutter.
 	The bias is $\sim 100$ times lower than the noise for $\nu<500$~GHz and
 	$\sim 5$ times lower than the noise at the worst point at 2 THz. At 200
-	Hz the bias is $\sim 10^{-10}$ of the signal in I and $\sim 10^{-6}$
+	GHz the bias is $\sim 10^{-10}$ of the signal in I and $\sim 10^{-6}$
 	of the signal in P. These errors are independent of observing mode.}
 	\label{fig:specbias}
 \end{figure}
@@ -1181,7 +1221,8 @@ imperfections on PIXIE’s performance.
 	First, it's cancelled when combining detectors in each horn unless
 	the two detectors have different beams, and secondly, it's cancelled
 	when combining the signal from the two horns unless the two horns
-	have different beams. In this simulation we used an unrealistic
+	have different beams. In this simulation we used an unrealistically
+	high
 	10\% mismatch between x- and y-oriented detectors in each horn, making
 	the first cancellation only 90\% efficient. The Q and U color scale is
 	10\% of the I color scale here. \emph{Right}: Plotting the output beam in
@@ -1245,7 +1286,7 @@ sky during each spin. Any local intensity quadrupole around
 the point PIXIE is pointing at will show up as a spin-2
 modulated signal in the time-ordered data, and will hence
 be interpreted as polarization. Alternatively, the same
-thing can be happen if the barrel is correctly aligned,
+thing can happen if the barrel is correctly aligned,
 but the beam is elliptical.
 
 We investigated ellipticity-induced leakage for a
@@ -1332,7 +1373,7 @@ that it is drowned out by sub-pixel effects.
 		\hspace{32mm}I & \hspace{32mm}Q & \hspace{32mm}U
 	\end{tabular}
 	\caption{\emph{Top left}: Example noise realization with 1/f-noise with
-		$f_\textrm{knee} = 0.1$ Hz, $\alpha=-3$ and $\sigma = 83 \sqrt{s}$
+		$f_\textrm{knee} = 0.1$ Hz, $\alpha=-3$ and $\sigma = 83 \sqrt{\rm s}$
 		fW/$\textrm{m}^2$/sr per detector. This $f_\textrm{knee}$ is
 		several orders of magntiude larger PIXIE's expected value,
 		resulting in strongly non-white noise on $>10$ s time scales.
@@ -1358,7 +1399,7 @@ unmeasurable 0 Hz frequency bin in the spectrum. We therefore expect PIXIE's
 maps/spectra to have only white noise. To test this we simulated 1/f noise with
 power $(1+[f/f_\textrm{knee}]^\alpha)\sigma^2$, with $f_\textrm{knee} = 0.1 \textrm{Hz}$
 (hundreds of times higher than expected, but slower than the stroke frequency),
-$\alpha=-3$ and $\sigma = 83\sqrt{s} \textrm{fW}/\textrm{m}^2/\textrm{sr}$ per detector.
+$\alpha=-3$ and $\sigma = 83\sqrt{\rm s} \textrm{fW}/\textrm{m}^2/\textrm{sr}$ per detector.
 As figure~\ref{fig:corrnoise} shows, this results in noise that white both
 spatially and spectrally. This confirms our expectation that (additive) correlated
 noise should not be an issue for PIXIE.
@@ -1373,7 +1414,7 @@ noise should not be an issue for PIXIE.
 	\caption{The effect of jitter in the mirror position. \emph{Left}:
 	We added noise consisting of a sum of 100 sine waves with random
 	periods logarithmically distributed in the range 0.25 Hz to 1000 Hz
-	with power proportional to $f^{-1}$ and a combined RMS of $30 nm\sqrt{s}$.
+	with power proportional to $f^{-1}$ and a combined RMS of $30 \rm nm\sqrt{s}$.
 	This is a rough approximation of noise that is damped
 	on long timescales by the mirror control system and on short timescales
 	by the inertia of the mirror. An example of such a noise realization
@@ -1394,13 +1435,13 @@ real experiment the mirror is a physical device that cannot turn
 around instantly, and which will end up vibrating and jittering
 at some level. The exact performance that can be expected from
 the mirror is still uncertain, but according to \citet{pixie-systematics},
-a jitter in the path difference of $\sim 30 \textrm{nm}\sqrt{\textrm{s}}$ has been
+a jitter in the path difference of $\sim 30 \rm nm\sqrt{s}$ has been
 achieved.
 
 We simulated jitter at this level by adding noise consisting of a
 sum of 100 sine waves with random periods logarithmically distributed
 in the range 0.25 Hz to 1000 Hz with power proportional to $f^{-1}$
-and a combined RMS of $30 nm\sqrt{s}$ to the path delay in the simulator.
+and a combined RMS of $30 \rm nm\sqrt{s}$ to the path delay in the simulator.
 This is a rough approximation of noise that is damped on long timescales
 by the mirror control system and on short timescales by the inertia of
 the mirror. The resulting spectra are shown in figure~\ref{fig:jitter}.
@@ -1412,9 +1453,9 @@ and unlike the other effects we have investigated, this contribution to the
 noise is not negligible. In total intensity it is about half as as high as
 the expected instrument noise, while it's about two orders of magnitude
 below the noise in polarization. The jitter level at which the jitter noise
-and instrument noise are equal are $0.10 \mu\textrm{m}\sqrt{\textrm{s}}$
-for I,  $2.2\mu\textrm{m}\sqrt{\textrm{s}}$ for P (single barrel) and
-$3.1\mu\textrm{m}\sqrt{\textrm{s}}$ for P (double barrel).
+and instrument noise are equal are $0.10 \rm \mu m\sqrt{s}$
+for I,  $2.2\rm\mu m\sqrt{s}$ for P (single barrel) and
+$3.1\rm\mu m\sqrt{s}$ for P (double barrel).
 
 One might hope that double barrel mode would
 be less affected by jitter noise, as it cancels the huge total intensity signal, and hence
@@ -1446,9 +1487,9 @@ adapted for any similar CMB satellite mission operating with a Fourier
 transform spectrometer.
 
 \section*{Acknowledgements}
-We would like to thank D. J. Fixsen for in-depth explanation
-about the inner workings of PIXIE; and T. Louis for helpful comments
-%We would like to thank T. Louis for helpful comments
+%We would like to thank D. J. Fixsen for in-depth explanation
+%about the inner workings of PIXIE; and T. Louis for helpful comments
+We would like to thank T. Louis for helpful comments
 during the writing of the article. The Flatiron Institute is supported by the
 Simons Foundation.
 

@@ -1,9 +1,9 @@
 %!PS-Adobe-3.0 EPSF-3.0
 %%Title: scan_orbit.fig
-%%Creator: fig2dev Version 3.2.6
-%%CreationDate: Wed Mar  1 15:08:08 2017
+%%Creator: fig2dev Version 3.2.7
+%%CreationDate: 2019-01-16 11:45:49
 %%BoundingBox: 0 0 1148 700
-%Magnification: 1.0000
+%%Magnification: 1.0000
 %%EndComments
 %%BeginProlog
 /$F2psDict 200 dict def
@@ -24,6 +24,7 @@ end
 /sa {save} bind def
 /rs {restore} bind def
 /l {lineto} bind def
+/rl {rlineto} bind def
 /m {moveto} bind def
 /rm {rmoveto} bind def
 /n {newpath} bind def
@@ -103,10 +104,10 @@ newfontname newfont definefont pop end } def
 /$F2psEnd {$F2psEnteredState restore end} def
 
 /pageheader {
-save
-newpath 0 700 moveto 0 0 lineto 1148 0 lineto 1148 700 lineto closepath clip newpath
-359.0 493.9 translate
-1 -1 scale
+sa
+n 0 700 m 0 0 l 1148 0 l 1148 700 l cp clip
+359.0 493.9 tr
+1 -1 sc
 $F2psBegin
 10 setmiterlimit
 0 slj 0 slc
@@ -148,33 +149,33 @@ gs col0 s gr
 % Polyline
 0 slj
 gs  clippath
-8907 2040 m 8727 1981 l 8708 2038 l 8889 2097 l 8889 2097 l 8756 2022 l 8907 2040 l cp
+8728 2020 m 8733 2007 l 8908 2041 l 8870 2060 l 8889 2098 l cp
 eoclip
 n 9900 2400 m
  8737 2016 l gs col0 s gr gr
 
 % arrowhead
-n 8907 2040 m 8756 2022 l 8889 2097 l 8869 2059 l 8907 2040 l 
+n 8908 2041 m 8756 2022 l 8889 2098 l 8870 2060 l 8908 2041 l 
  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 gs  clippath
-8238 -1834 m 8152 -1664 l 8205 -1637 l 8292 -1806 l 8292 -1806 l 8197 -1687 l 8238 -1834 l cp
+8191 -1660 m 8179 -1666 l 8239 -1834 l 8252 -1793 l 8292 -1806 l cp
 eoclip
 n 8408 -2097 m
  8188 -1669 l gs col0 s gr gr
 
 % arrowhead
-n 8238 -1834 m 8197 -1687 l 8292 -1806 l 8251 -1793 l 8238 -1834 l 
+n 8239 -1834 m 8197 -1687 l 8292 -1806 l 8252 -1793 l 8239 -1834 l 
  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 gs  clippath
-8472 -1967 m 8413 -2147 l 8356 -2128 l 8416 -1948 l 8416 -1948 l 8397 -2100 l 8472 -1967 l cp
+8382 -2123 m 8395 -2128 l 8473 -1967 l 8435 -1986 l 8416 -1948 l cp
 eoclip
 n 9900 2400 m
  8391 -2119 l gs col0 s gr gr
 
 % arrowhead
-n 8472 -1967 m 8397 -2100 l 8416 -1948 l 8435 -1986 l 8472 -1967 l 
+n 8473 -1967 m 8397 -2100 l 8416 -1948 l 8435 -1986 l 8473 -1967 l 
  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 n 3075 4050 m
@@ -191,10 +192,29 @@ gs 1 -1 sc (Orbital) dup sw pop 2 div neg 0 rm  col0 sh gr
 % here ends figure;
 % 
 % here starts figure with depth 50
-% Ellipse
+% Arc
 7.500 slw
+0 slc
+gs  clippath
+9239 -53 m 9228 -60 l 9278 -228 l 9311 -170 l 9377 -160 l cp
+eoclip
+n 9000.3 -300.8 336.3 116.5430 45.2534 arc
+gs col0 s gr
+ gr
+
+% arrowhead
+0 slj
+n 9278 -228 m 9243 -71 l 9377 -160 l 9311 -170 l 9278 -228 l 
+ cp gs 0.00 setgray ef gr  col0 s
+% Ellipse
 n 9900 2400 106 106 0 360 DrawEllipse gs col0 s gr
 
+/Times-Roman-iso ff 500.00 scf sf
+9975 -375 m
+gs 1 -1 sc (angle) dup sw pop 2 div neg 0 rm  col0 sh gr
+/Times-Roman-iso ff 500.00 scf sf
+9975 -750 m
+gs 1 -1 sc (Spin) dup sw pop 2 div neg 0 rm  col0 sh gr
 % here ends figure;
 % 
 % here starts figure with depth 40
@@ -232,9 +252,6 @@ gs 1 -1 sc (pointing) dup sw pop 2 div neg 0 rm  col0 sh gr
 10515 1887 m
 gs 1 -1 sc (angle) dup sw pop 2 div neg 0 rm  col0 sh gr
 /Times-Roman-iso ff 500.00 scf sf
-10496 1511 m
-gs 1 -1 sc (Scan) dup sw pop 2 div neg 0 rm  col0 sh gr
-/Times-Roman-iso ff 500.00 scf sf
 11267 1710 m
 gs 1 -1 sc (=) dup sw pop 2 div neg 0 rm  col0 sh gr
 /Times-Roman-iso ff 500.00 scf sf
@@ -252,6 +269,9 @@ gs 1 -1 sc (Earth) dup sw pop 2 div neg 0 rm  col0 sh gr
 /Times-Roman-iso ff 500.00 scf sf
 9900 2943 m
 gs 1 -1 sc (L2) dup sw pop 2 div neg 0 rm  col0 sh gr
+/Times-Roman-iso ff 500.00 scf sf
+10496 1511 m
+gs 1 -1 sc (Scan) dup sw pop 2 div neg 0 rm  col0 sh gr
 % here ends figure;
 pagefooter
 showpage
