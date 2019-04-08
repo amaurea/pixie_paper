@@ -303,6 +303,9 @@ identical to that of single barrel mode with $(I^A,Q^A,U^A,V^A)=(I^B,Q^B,U^B,V^B
 so we can use the single barrel eqs~(\ref{eq:single}) in the following
 without further loss of generality.
 
+A fuller treatment of the effects of beam asymmetries can be found in
+\citet{pixie-multi-moded-beams-2018}.
+
 \subsection{Detector response}
 PIXIE has an x and y-oriented detector in each horn. The power deposited on each
 of these is
@@ -385,6 +388,23 @@ For the bandpass filter we used a Butterworth bandpass filter,
 	B(f) &= \Big(1+\Big[\frac{f}{0.01\textrm{Hz}}\Big]^{-5}\Big)^{-1}
 		\Big(1+\Big[\frac{f}{100\textrm{Hz}}\Big]^{5}\Big)^{-1}.
 \end{align}
+
+\subsection{Frequency response}
+\label{sect:response}
+PIXIE's frequency response is limited above 1-2 THz by the
+roughness of the mirrors. Scattering from the mirrors
+provides a gradual decrease in the coupling of the detectors
+to the sky. The resulting apodized frequency response
+smoothly band-limits the signal to avoid aliasing from frequencies
+about the instrument's Nyquist frequency of 7 THz. Dispersion within
+the FTS from the finite spread of angles within the beam
+washes out the fringe amplitude at comparable frequencies.
+Synthesized channels at frequencies above $\sim$6 THz thus contain
+noise but no signal, providing a convenient check of the instrument
+noise.
+
+We here model the total frequency response as $\rho(\nu) =
+e^{-\left[\frac{\nu}{1.5\textrm{THz}}\right]^2}$.
 
 \section{Pointing}
 \label{sec:pointing}
@@ -571,16 +591,8 @@ precomputed autocorrelation function. This is done differently for each sky comp
 
 \subsubsection{CMB}
 \label{sect:cmb}
-Taking into account the instrument's frequency response $\rho(\nu)$, which
-we model as $\rho(\nu) = e^{-\left[\frac{\nu}{1.5\textrm{THz}}\right]^2}$
-\footnote{
-PIXIE's frequency response is limited above 1-2 THz by the
-roughness of the mirrors. Scattering from the mirrors
-provides a gradual decrease in the coupling of the detectors
-to the sky.  The resulting apodized frequency response
-smoothly band-limits the signal to avoid aliasing from frequencies
-about the instrument's Nyquist frequency of 7 THz.}, PIXIE
-observes the CMB with the spectrum
+Taking into account the instrument's frequency response $\rho(\nu)$ (see section~\ref{sect:response}),
+PIXIE observes the CMB with the spectrum
 \begin{align}
 I^\textrm{CMB}_{\nu,I}(\hat p, \nu) &= \rho(\nu)B_\nu(\nu, T(\hat p)) = \frac{2h\nu^3\rho(\nu)}{c^2}\frac{1}{e^{\frac{h\nu}{k_BT(\hat p)}} - 1}.
 \end{align}
@@ -789,6 +801,8 @@ We assume that the calibrator in single barrel mode is constant and
 unpolarized. That means that its effect can be taken into account
 simply by adding back the calibrator spectrum in map space, and
 the map-maker itself can ignore it, and set $\vec s^\textrm{sky}_B=0$.
+We also assume that the sky itself is time-independent, so there is just
+a single sky to solve for. Any deviations from this will be interpreted as noise.
 
 In double barrel mode we assume that the two barrels see the same signal,
 and that the V and U antisymmetric leakage terms can be ignored.
@@ -834,7 +848,18 @@ strokes per spin and spins per scan respectively.
 \paragraph{Simple noise}
 For simplicity, we will also assume that the detectors have independent white
 noise of equal amplitude. Neither of these are necessary, and can be easily
-relaxed in the future.
+relaxed in the future. Section~\ref{sect:corrnoise} discusses the effect
+of correlated (1/f) noise on the PIXIE spectral maps.
+
+With the nominal rates of 1024 detector samples per mirror stroke,
+the Fourier transform returns 512 synthesized frequency channels each
+14.4 GHz wide, extending from DC to 7.4 THz. Scattering filters
+in the optical path limit the response at frequencies above 6 THz.
+Dispersion within the FTS from the finite spread of angles within
+the beam washes out the fringe amplitude at comparable frequencies.
+Synthesized channels at frequencies above $\sim$6 THz thus contain
+noise but no signal, providing a convenient check of the instrument
+noise.
 
 \begin{figure}
 	\centering
@@ -985,6 +1010,11 @@ and can be straightforwardly inverted as
 which is simply the gain-correct 0th Fourier mode and
 real and imaginary part of the 2nd Fourier mode.
 
+\subsection{Frequency response correction}
+PIXIE's response drops off as we approach 6 GHz (see section~\ref{sect:response}).
+We correct for this by dividing each frequency bin by the instrument frequency
+response function $\rho(\nu)$ evaluated at the bin center.
+
 \subsection{Mapmaker pseudo-python}
 \label{sect:mapmaker}
 The full source code of the map-maker can be found in the
@@ -1014,7 +1044,7 @@ for each scan:
 	# Transform from autocorrelation into spectrum
 	d = [d[:,:,0],d[:,:,2].real*2,d[:,:,2].imag*2]
 	d = fft(d, axis=3)*2/strokesamps/dfreq
-	# Take into account the detector polarization orientation and gain
+	# Take into account the detector polarization orientation and frequency response
 	d = unapply_detector_response(d)
 	add_to_sky(map,  scan.lon, d)
 	add_to_sky(hits, scan.lon, 1)
@@ -1367,6 +1397,7 @@ flattening of 0.5 any residual non-circularity is low enough
 that it is drowned out by sub-pixel effects.
 
 \subsection{Correlated noise}
+\label{sect:corrnoise}
 \begin{figure}
 	\centering
 	\hspace*{-13mm}\begin{tabular}{m{80mm}m{80mm}}
@@ -1400,16 +1431,31 @@ PIXIE's detector readout is expected to have a slowly varying 1/f noise componen
 with an $f_\textrm{knee} \sim 1/\textrm{hour}$ or longer. 1/f noise usually manifests as
 correlated structures in the map, for example striping in the scanning direction.
 In PIXIE's case, though, we get a measurement of the spectrum every 7.5 seconds
-as the mirror strokes. As long as it is purely additive, any signal on longer time-scales than that only contributes
-to the DC component of the autocorrelation function, which corresponds to the
-unmeasurable 0 Hz frequency bin in the spectrum. We therefore expect PIXIE's
-maps/spectra to have only white noise. To test this we simulated 1/f noise with
+as the mirror strokes. As long as it is purely additive, slow drifts can be thought
+of as low-order polynomials vs mirror position for a single mirror stroke. As such,
+they are Fourier-transformed to low optical frequencies and affect only the DC component,
+or at worst the first few bins of the synthesized spectra, and do not propagate to
+spatial striping in the maps. We therefore expect PIXIE's
+maps/spectra to have only white noise.
+
+To test this we simulated 1/f noise with
 power $(1+[f/f_\textrm{knee}]^\alpha)\sigma^2$, with $f_\textrm{knee} = 0.1 \textrm{Hz}$
 (hundreds of times higher than expected, but slower than the stroke frequency),
 $\alpha=-3$ and $\sigma = 83\sqrt{\rm s} \textrm{fW}/\textrm{m}^2/\textrm{sr}$ per detector.
 As figure~\ref{fig:corrnoise} shows, this results in noise that white both
 spatially and spectrally. This confirms our expectation that (additive) correlated
 noise should not be an issue for PIXIE.
+
+\subsection{Sub-pixel effects}
+Anisotropy on scales smaller than PIXIE's beam, including CMB anisotropy
+as well as point sources, will affect the map making. Scanning
+the beams across the sky causes point sources to enter or exit the beam
+during the course of a single mirror stroke, creating signal variations
+on time scales short compared to the mirror stroke. Signals on short
+time scales (high spatial frequencies) are Fourier-transformed to
+high frequencies in the synthesized spectra and primarily affect channels
+above 6 THz containing little true sky signal. See appendix~\ref{sect:subpix}
+a fuller discussion.
 
 \subsection{Mirror jitter}
 \begin{figure}
@@ -1467,7 +1513,7 @@ $3.1\rm\mu m\sqrt{s}$ for P (double barrel).
 One might hope that double barrel mode would
 be less affected by jitter noise, as it cancels the huge total intensity signal, and hence
 could prevent it from contributing to this noise term. However,
-the opposite polarizaion sign for the two detectors in each horn cancels
+the opposite polarization sign for the two detectors in each horn cancels
 the total intensity contribution to the polarization jitter noise even in
 single barrel mode. Mirror jitter is therefore approximately as important in double
 barrel mode\footnote{Double barrel mode is more robust to I-to-P leakage,
@@ -1591,7 +1637,7 @@ and map-maker both made the same assumptions about sub-pixel behavior,
 which would have been the case for a simpler simulator.
 That would, however, have been misleading. The real sky is neither
 Fourier-interpolated nor bicubic-interpolated, and so this kind of
-sub-pixel mismatch is unavilable when analyzing actual data. The
+sub-pixel mismatch is unavoidable when analyzing actual data. The
 mismatch between Fourier-interpolation and bicubic interpolation
 is not exactly the same as what one can expect for the real data,
 but it is a good approximation for it.
